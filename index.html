@@ -239,7 +239,7 @@
       border: 1px solid rgba(255,255,255,0.2);
       border-radius: 16px;
       padding: 24px;
-      max-width: 480px;
+      max-width: 520px;
       width: 100%;
       display: flex;
       flex-direction: column;
@@ -248,14 +248,41 @@
     .cuzdan-satir {
       background: rgba(0,0,0,0.35);
       border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 8px;
+      border-radius: 10px;
       padding: 10px 12px;
       font-size: 0.82rem;
-      word-break: break-all;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+    }
+    .cuzdan-sol {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      flex: 1;
+    }
+    .coin-ikon {
+      width: 28px;
+      height: 28px;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+    .cuzdan-metin {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .cuzdan-adres {
+      font-family: monospace;
+      font-size: 0.78rem;
+      color: #d6dbff;
+      word-break: break-all;
     }
     @media (max-width: 520px) {
       h1 { font-size: 1.65rem; }
@@ -350,14 +377,77 @@
     <div class="modal-kutu">
       <h3 data-i18n="cryptoTitle">Support AskWeb via Crypto</h3>
       <p style="font-size:0.88rem; color:#ccc;" data-i18n="cryptoDesc">Send directly or include your Tx hash in the Sponsor form.</p>
+
+      <!-- BTC -->
       <div class="cuzdan-satir">
-        <span><strong>USDT (TRC20/ERC20):</strong> <span id="w_usdt">0xYOUR_EVM_ADDRESS</span></span>
-        <button class="dil-btn" onclick="kopyala('w_usdt')">Copy</button>
+        <div class="cuzdan-sol">
+          <span class="coin-ikon" style="background: rgba(247, 147, 26, 0.18); color: #f7931a;" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1.4 14.2v1.6h-1.5v-1.6h-1.2v1.6H9.2v-1.6H7.4v-1.5h1.1c.3 0 .5-.2.5-.5V9.2c0-.3-.2-.5-.5-.5H7.4V7.2h1.8V5.6h1.5v1.6h1.2V5.6h1.5v1.6c1.6.1 2.7.9 2.7 2.2 0 .9-.5 1.6-1.4 1.9 1.1.3 1.7 1.1 1.7 2.2 0 1.4-1.1 2.3-2.9 2.4zm-.6-5.2c.9 0 1.5-.5 1.5-1.2 0-.7-.6-1.1-1.5-1.1h-2.1V11h2.1zm.2 3.8c1 0 1.6-.5 1.6-1.3 0-.8-.6-1.2-1.6-1.2h-2.3v2.5H13z"/>
+            </svg>
+          </span>
+          <div class="cuzdan-metin">
+            <strong>BTC (Bitcoin)</strong>
+            <span class="cuzdan-adres" id="w_btc">bc1q0w6fzuklmtmc0jkjt3e49s5sz58lq38kk4vle3</span>
+          </div>
+        </div>
+        <button class="dil-btn" onclick="kopyala('w_btc', this)" data-i18n="copyBtn">Copy</button>
       </div>
+
+      <!-- ETH -->
       <div class="cuzdan-satir">
-        <span><strong>BTC:</strong> <span id="w_btc">bc1qYOUR_BTC_ADDRESS</span></span>
-        <button class="dil-btn" onclick="kopyala('w_btc')">Copy</button>
+        <div class="cuzdan-sol">
+          <span class="coin-ikon" style="background: rgba(98, 126, 234, 0.2); color: #8fa8ff;" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="12,2 5.5,12.2 12,16 18.5,12.2"/>
+              <polygon points="12,17.4 5.5,13.6 12,22 18.5,13.6" opacity="0.8"/>
+            </svg>
+          </span>
+          <div class="cuzdan-metin">
+            <strong>ETH (Ethereum)</strong>
+            <span class="cuzdan-adres" id="w_eth">0x47A85F0B4AE86cF130e0393c41fcb20E418723B9</span>
+          </div>
+        </div>
+        <button class="dil-btn" onclick="kopyala('w_eth', this)" data-i18n="copyBtn">Copy</button>
       </div>
+
+      <!-- BNB -->
+      <div class="cuzdan-satir">
+        <div class="cuzdan-sol">
+          <span class="coin-ikon" style="background: rgba(243, 186, 47, 0.2); color: #f3ba2f;" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="12,3 15.2,6.2 12,9.4 8.8,6.2"/>
+              <polygon points="12,14.6 15.2,17.8 12,21 8.8,17.8"/>
+              <polygon points="3,12 6.2,8.8 9.4,12 6.2,15.2"/>
+              <polygon points="14.6,12 17.8,8.8 21,12 17.8,15.2"/>
+              <polygon points="12,9.8 14.2,12 12,14.2 9.8,12"/>
+            </svg>
+          </span>
+          <div class="cuzdan-metin">
+            <strong>BNB (BNB Smart Chain)</strong>
+            <span class="cuzdan-adres" id="w_bnb">0x47A85F0B4AE86cF130e0393c41fcb20E418723B9</span>
+          </div>
+        </div>
+        <button class="dil-btn" onclick="kopyala('w_bnb', this)" data-i18n="copyBtn">Copy</button>
+      </div>
+
+      <!-- TRON -->
+      <div class="cuzdan-satir">
+        <div class="cuzdan-sol">
+          <span class="coin-ikon" style="background: rgba(235, 0, 41, 0.2); color: #ff5266;" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="3.5,4.5 20.5,8.2 12.2,20.5"/>
+              <polygon points="3.5,4.5 11.8,10.8 12.2,20.5" opacity="0.75"/>
+            </svg>
+          </span>
+          <div class="cuzdan-metin">
+            <strong>TRON (TRX / TRC20)</strong>
+            <span class="cuzdan-adres" id="w_trx">TSGd49CKWeyoGt9nh62DBCZuGXHAiHo1if</span>
+          </div>
+        </div>
+        <button class="dil-btn" onclick="kopyala('w_trx', this)" data-i18n="copyBtn">Copy</button>
+      </div>
+
       <div style="display:flex; justify-content:flex-end;">
         <button class="dil-btn" onclick="modalKapat('cryptoModal')" data-i18n="closeBtn">Close</button>
       </div>
@@ -400,6 +490,7 @@
         subTitlePh: "Content Title", subDescPh: "Short description", subTagsPh: "Tags (comma separated)",
         planListing: "Directory Listing (Paid / Pinning)", planSponsored: "Sponsored Placement",
         subContactPh: "Contact / Wallet Tx (optional)",
+        copyBtn: "Copy", copiedBtn: "Copied",
         closeBtn: "Close", sendBtn: "Send",
         needFields: "CID, title and description are required.",
         sentOk: "Submitted for review."
@@ -436,6 +527,7 @@
         subTitlePh: "İçerik Başlığı", subDescPh: "Kısa açıklama", subTagsPh: "Etiketler (virgülle ayırın)",
         planListing: "Ücretli Dizin Kaydı / Pinning", planSponsored: "Sponsorlu Öne Çıkarma",
         subContactPh: "İletişim / Ödeme Tx (opsiyonel)",
+        copyBtn: "Kopyala", copiedBtn: "Kopyalandı",
         closeBtn: "Kapat", sendBtn: "Gönder",
         needFields: "CID, başlık ve açıklama zorunludur.",
         sentOk: "Başvurunuz inceleme için alındı."
@@ -472,6 +564,7 @@
         subTitlePh: "Titel des Inhalts", subDescPh: "Kurzbeschreibung", subTagsPh: "Tags (durch Komma getrennt)",
         planListing: "Verzeichniseintrag / Pinning", planSponsored: "Gesponserte Platzierung",
         subContactPh: "Kontakt / Transaktions-Hash (optional)",
+        copyBtn: "Kopieren", copiedBtn: "Kopiert",
         closeBtn: "Schließen", sendBtn: "Senden",
         needFields: "CID, Titel und Beschreibung sind erforderlich.",
         sentOk: "Zur Prüfung eingereicht."
@@ -615,9 +708,15 @@
     function modalKapat(id) { document.getElementById(id).classList.remove("acik"); }
     function modalKapatDis(e, id) { if (e.target.id === id) modalKapat(id); }
 
-    function kopyala(elId) {
+    function kopyala(elId, btn) {
       const txt = document.getElementById(elId).textContent;
-      navigator.clipboard?.writeText(txt);
+      const paket = CEVIRILER[aktifDil] || CEVIRILER.en;
+      navigator.clipboard?.writeText(txt).catch(() => {});
+      if (btn) {
+        const eski = paket.copyBtn;
+        btn.textContent = paket.copiedBtn;
+        setTimeout(() => { btn.textContent = eski; }, 1400);
+      }
     }
 
     async function basvuruGonder() {
