@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- SEO Etiketleri -->
+  <title>AskWeb | AI Destekli İsim Çözümleyici</title>
+  <meta name="description" content="AskWeb ile alan adı satın almadan, doğal dilde sor ve AI destekli isim çözümleyici ile IPFS üzerinden kalıcı içeriğe ulaş. Ücretsiz, anonim, .com gerekmez.">
+  <meta name="keywords" content="AskWeb, anonim web sitesi, ücretsiz alan adı, AI isim çözümleyici, IPFS web sitesi, doğal dil arama, merkeziyetsiz web">
+  <meta name="author" content="AskWeb Projesi">
+  <meta name="robots" content="index, follow">
+
+  <!-- Sosyal Medya Etiketleri -->
+  <meta property="og:title" content="AskWeb | AI Destekli İsim Çözümleyici">
+  <meta property="og:description" content="Alan adı satın almadan, ücretsiz ve anonim web sitesi oluştur. AI ile doğal dilde ara, IPFS üzerinden kalıcı içeriğe ulaş.">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="tr_TR">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    header { text-align: center; margin: 40px 0 20px; }
+    h1 {
+      font-size: 2.2rem;
+      background: linear-gradient(90deg, #00d2ff, #3a7bd5, #00d2ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+    .alt-baslik {
+      font-size: 1.1rem;
+      color: #b8b8d4;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+    .kutu {
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 16px;
+      padding: 30px;
+      max-width: 700px;
+      width: 100%;
+      margin: 30px 0;
+    }
+    .kutu h2 { font-size: 1.3rem; margin-bottom: 16px; color: #00d2ff; }
+    .arama-alani { display: flex; gap: 10px; margin: 20px 0; }
+    .arama-alani input {
+      flex: 1;
+      padding: 14px 18px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+      font-size: 1rem;
+      outline: none;
+    }
+    .arama-alani input:focus { border-color: #00d2ff; }
+    .arama-alani button {
+      padding: 14px 24px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .adimlar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .adim {
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 18px;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .adim .numara { font-size: 1.8rem; font-weight: 700; color: #00d2ff; }
+    .adim p { font-size: 0.95rem; color: #ccc; margin-top: 8px; line-height: 1.5; }
+    .rozetler { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 20px; }
+    .rozet {
+      background: rgba(0,210,255,0.15);
+      border: 1px solid rgba(0,210,255,0.3);
+      color: #00d2ff;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+    }
+    footer { margin-top: auto; padding: 20px; text-align: center; color: #888; font-size: 0.85rem; }
+    @media (max-width: 500px) {
+      h1 { font-size: 1.6rem; }
+      .arama-alani { flex-direction: column; }
+      .kutu { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>AskWeb</h1>
+    <p class="alt-baslik">Alan adı satın almadan, AI destekli isim çözümleyici ile doğal dilde ara ve kalıcı içeriğe ulaş.</p>
+    <div class="rozetler">
+      <span class="rozet">.com gerekmez</span>
+      <span class="rozet">Ücretsiz</span>
+      <span class="rozet">Anonim</span>
+      <span class="rozet">AI destekli</span>
+      <span class="rozet">IPFS kalıcı</span>
+    </div>
+  </header>
+
+  <main class="kutu">
+    <h2>🔍 Ne aramak istersin?</h2>
+    <div class="arama-alani">
+      <input type="text" id="sorgu" placeholder="Örn: İstanbul'daki en iyi kahve rehberi">
+      <button onclick="demoCalistir()">Çözümle</button>
+    </div>
+    <p id="sonuc" style="color:#00d2ff; font-size:0.95rem; min-height:24px;"></p>
+
+    <h2 style="margin-top:28px;">⚙️ Nasıl Çalışır?</h2>
+    <div class="adimlar">
+      <div class="adim"><div class="numara">1</div><p>Doğal dilde yaz: "kahve rehberi"</p></div>
+      <div class="adim"><div class="numara">2</div><p>AI cümleni anlar ve anlamını çıkarır</p></div>
+      <div class="adim"><div class="numara">3</div><p>IPFS üzerindeki kalıcı içeriğe yönlendirir</p></div>
+    </div>
+  </main>
+
+  <footer>
+    <p>AskWeb — AI Destekli İsim Çözümleyici | Prototip Aşaması</p>
+  </footer>
+
+  <script>
+    function demoCalistir() {
+      const sorgu = document.getElementById('sorgu').value.trim();
+      const sonuc = document.getElementById('sonuc');
+      if (!sorgu) {
+        sonuc.textContent = "Lütfen bir şey yazın.";
+        return;
+      }
+      sonuc.textContent = "🤖 AI analiz ediyor...";
+      setTimeout(() => {
+        sonuc.textContent = `✅ "${sorgu}" için eşleşen içerik bulundu → IPFS: QmXyz123... (demo)`;
+      }, 800);
+    }
+  </script>
+
+</body>
+</html>
