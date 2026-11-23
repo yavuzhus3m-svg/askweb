@@ -1,21 +1,20 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- SEO Etiketleri -->
-  <title>AskWeb | AI Destekli İsim Çözümleyici</title>
-  <meta name="description" content="AskWeb ile alan adı satın almadan, doğal dilde sor ve AI destekli isim çözümleyici ile IPFS üzerinden kalıcı içeriğe ulaş. Ücretsiz, anonim, .com gerekmez.">
-  <meta name="keywords" content="AskWeb, anonim web sitesi, ücretsiz alan adı, AI isim çözümleyici, IPFS web sitesi, doğal dil arama, merkeziyetsiz web">
-  <meta name="author" content="AskWeb Projesi">
+  <title data-i18n="title">AskWeb | AI-Powered IPFS Name Resolver</title>
+  <meta name="description" data-i18n-attr="content:metaDesc" content="Search in natural language without buying a domain and reach persistent content on IPFS with an AI-powered name resolver.">
+  <meta name="author" content="AskWeb">
   <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://askweb.dpdns.org/">
 
-  <!-- Sosyal Medya Etiketleri -->
-  <meta property="og:title" content="AskWeb | AI Destekli İsim Çözümleyici">
-  <meta property="og:description" content="Alan adı satın almadan, ücretsiz ve anonim web sitesi oluştur. AI ile doğal dilde ara, IPFS üzerinden kalıcı içeriğe ulaş.">
+  <meta property="og:title" data-i18n-attr="content:title" content="AskWeb | AI-Powered IPFS Name Resolver">
+  <meta property="og:description" data-i18n-attr="content:ogDesc" content="Search in natural language with AI and reach persistent content on IPFS without buying a domain.">
   <meta property="og:type" content="website">
-  <meta property="og:locale" content="tr_TR">
+  <meta property="og:url" content="https://askweb.dpdns.org/">
+  <meta property="og:locale" data-i18n-attr="content:ogLocale" content="en_US">
 
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -29,17 +28,51 @@
       align-items: center;
       padding: 20px;
     }
-    header { text-align: center; margin: 40px 0 20px; }
+    .ust-bar {
+      width: 100%;
+      max-width: 720px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .aksiyon-btn {
+      background: rgba(0,210,255,0.14);
+      border: 1px solid rgba(0,210,255,0.35);
+      color: #00d2ff;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .dil-bar { display: flex; gap: 6px; }
+    .dil-btn {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #ccc;
+      padding: 5px 11px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .dil-btn.aktif {
+      background: rgba(0,210,255,0.22);
+      border-color: #00d2ff;
+      color: #00d2ff;
+      font-weight: 600;
+    }
+    header { text-align: center; margin: 26px 0 18px; }
     h1 {
       font-size: 2.2rem;
       background: linear-gradient(90deg, #00d2ff, #3a7bd5, #00d2ff);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      margin-bottom: 12px;
-      line-height: 1.3;
+      margin-bottom: 10px;
     }
     .alt-baslik {
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       color: #b8b8d4;
       max-width: 600px;
       margin: 0 auto;
@@ -50,114 +83,581 @@
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255,255,255,0.15);
       border-radius: 16px;
-      padding: 30px;
-      max-width: 700px;
+      padding: 28px;
+      max-width: 720px;
       width: 100%;
-      margin: 30px 0;
+      margin: 20px 0;
     }
-    .kutu h2 { font-size: 1.3rem; margin-bottom: 16px; color: #00d2ff; }
-    .arama-alani { display: flex; gap: 10px; margin: 20px 0; }
-    .arama-alani input {
-      flex: 1;
-      padding: 14px 18px;
+    .kutu h2 { font-size: 1.25rem; margin-bottom: 14px; color: #00d2ff; }
+    .arama-alani { display: flex; gap: 10px; margin: 16px 0 10px; }
+    .arama-alani input, .modal-kutu input, .modal-kutu textarea, .modal-kutu select {
+      width: 100%;
+      padding: 12px 15px;
       border-radius: 10px;
       border: 1px solid rgba(255,255,255,0.2);
-      background: rgba(0,0,0,0.3);
+      background: rgba(0,0,0,0.35);
       color: #fff;
-      font-size: 1rem;
+      font-size: 0.95rem;
       outline: none;
     }
-    .arama-alani input:focus { border-color: #00d2ff; }
-    .arama-alani button {
-      padding: 14px 24px;
+    .arama-alani input { flex: 1; }
+    .arama-alani input:focus, .modal-kutu input:focus, .modal-kutu textarea:focus { border-color: #00d2ff; }
+    .arama-alani button, .birincil-btn {
+      padding: 12px 22px;
       border-radius: 10px;
       border: none;
       background: linear-gradient(90deg, #00d2ff, #3a7bd5);
       color: #fff;
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: 600;
       cursor: pointer;
     }
+    .ornek-sorgular {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-size: 0.82rem;
+      color: #9fa4c4;
+    }
+    .ornek-chip {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.16);
+      color: #d6dbff;
+      padding: 4px 10px;
+      border-radius: 14px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .ornek-chip:hover {
+      border-color: #00d2ff;
+      color: #00d2ff;
+    }
+    .durum { color: #00d2ff; font-size: 0.92rem; min-height: 22px; margin-top: 6px; }
+    .sonuclar { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
+    .kart {
+      background: rgba(0,0,0,0.28);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .kart.sponsor {
+      border-color: rgba(255, 193, 7, 0.55);
+      background: rgba(255, 193, 7, 0.08);
+    }
+    .etiket {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      background: rgba(0,210,255,0.18);
+      color: #00d2ff;
+    }
+    .kart.sponsor .etiket {
+      background: rgba(255, 193, 7, 0.22);
+      color: #ffd54f;
+    }
+    .kart h3 { font-size: 1.05rem; margin-bottom: 6px; }
+    .kart p { font-size: 0.9rem; color: #d0d0e8; line-height: 1.45; margin-bottom: 10px; }
+    .kart-alt {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 0.8rem;
+      color: #9fa4c4;
+    }
+    .kart a {
+      color: #00d2ff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .kart a:hover { text-decoration: underline; }
     .adimlar {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 16px;
-      margin-top: 20px;
+      gap: 14px;
+      margin-top: 16px;
     }
     .adim {
       background: rgba(255,255,255,0.05);
       border-radius: 12px;
-      padding: 18px;
+      padding: 16px;
       text-align: center;
       border: 1px solid rgba(255,255,255,0.1);
     }
-    .adim .numara { font-size: 1.8rem; font-weight: 700; color: #00d2ff; }
-    .adim p { font-size: 0.95rem; color: #ccc; margin-top: 8px; line-height: 1.5; }
-    .rozetler { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 20px; }
+    .adim .numara { font-size: 1.6rem; font-weight: 700; color: #00d2ff; }
+    .adim p { font-size: 0.9rem; color: #ccc; margin-top: 6px; line-height: 1.45; }
+    .hakkinda-kutu {
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255,255,255,0.12);
+    }
+    .hakkinda-kutu h2 { font-size: 1.1rem; margin-bottom: 8px; }
+    .hakkinda-kutu p {
+      font-size: 0.9rem;
+      color: #b8b8d4;
+      line-height: 1.6;
+    }
+    .rozetler { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 16px; }
     .rozet {
-      background: rgba(0,210,255,0.15);
+      background: rgba(0,210,255,0.14);
       border: 1px solid rgba(0,210,255,0.3);
       color: #00d2ff;
-      padding: 6px 14px;
+      padding: 5px 12px;
       border-radius: 20px;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
     }
-    footer { margin-top: auto; padding: 20px; text-align: center; color: #888; font-size: 0.85rem; }
-    @media (max-width: 500px) {
-      h1 { font-size: 1.6rem; }
+    footer {
+      margin-top: auto;
+      padding: 20px;
+      text-align: center;
+      color: #9aa0be;
+      font-size: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .modal-arkaplan {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.72);
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+      z-index: 50;
+    }
+    .modal-arkaplan.acik { display: flex; }
+    .modal-kutu {
+      background: #181536;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 480px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .cuzdan-satir {
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 0.82rem;
+      word-break: break-all;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    @media (max-width: 520px) {
+      h1 { font-size: 1.65rem; }
       .arama-alani { flex-direction: column; }
-      .kutu { padding: 20px; }
+      .kutu { padding: 18px; }
     }
   </style>
 </head>
 <body>
 
+  <div class="ust-bar">
+    <button class="aksiyon-btn" onclick="modalAc('submitModal')" data-i18n="addContentBtn">+ Add Content / Sponsor</button>
+    <div class="dil-bar">
+      <button class="dil-btn" data-lang="tr" onclick="dilDegistir('tr')">TR</button>
+      <button class="dil-btn" data-lang="en" onclick="dilDegistir('en')">EN</button>
+      <button class="dil-btn" data-lang="de" onclick="dilDegistir('de')">DE</button>
+    </div>
+  </div>
+
   <header>
     <h1>AskWeb</h1>
-    <p class="alt-baslik">Alan adı satın almadan, AI destekli isim çözümleyici ile doğal dilde ara ve kalıcı içeriğe ulaş.</p>
+    <p class="alt-baslik" data-i18n="subtitle">Search in natural language with an AI-powered name resolver and reach persistent content on IPFS.</p>
     <div class="rozetler">
-      <span class="rozet">.com gerekmez</span>
-      <span class="rozet">Ücretsiz</span>
-      <span class="rozet">Anonim</span>
-      <span class="rozet">AI destekli</span>
-      <span class="rozet">IPFS kalıcı</span>
+      <span class="rozet" data-i18n="badge1">No .com needed</span>
+      <span class="rozet" data-i18n="badge2">Anonymous</span>
+      <span class="rozet" data-i18n="badge3">AI-powered</span>
+      <span class="rozet" data-i18n="badge4">IPFS persistent</span>
     </div>
   </header>
 
   <main class="kutu">
-    <h2>🔍 Ne aramak istersin?</h2>
+    <h2 data-i18n="searchTitle">🔍 What are you looking for?</h2>
     <div class="arama-alani">
-      <input type="text" id="sorgu" placeholder="Örn: İstanbul'daki en iyi kahve rehberi">
-      <button onclick="demoCalistir()">Çözümle</button>
+      <input type="text" id="sorgu" data-i18n-attr="placeholder:searchPlaceholder" placeholder="e.g., Best coffee guide in Istanbul">
+      <button onclick="aramaYap()" data-i18n="resolveBtn">Resolve</button>
     </div>
-    <p id="sonuc" style="color:#00d2ff; font-size:0.95rem; min-height:24px;"></p>
 
-    <h2 style="margin-top:28px;">⚙️ Nasıl Çalışır?</h2>
-    <div class="adimlar">
-      <div class="adim"><div class="numara">1</div><p>Doğal dilde yaz: "kahve rehberi"</p></div>
-      <div class="adim"><div class="numara">2</div><p>AI cümleni anlar ve anlamını çıkarır</p></div>
-      <div class="adim"><div class="numara">3</div><p>IPFS üzerindeki kalıcı içeriğe yönlendirir</p></div>
+    <div class="ornek-sorgular">
+      <span data-i18n="tryLabel">Try:</span>
+      <button type="button" class="ornek-chip" data-i18n="chip1" onclick="ornekAra(this.textContent)">IPFS Starter Guide</button>
+      <button type="button" class="ornek-chip" data-i18n="chip2" onclick="ornekAra(this.textContent)">Open Source Tools</button>
+      <button type="button" class="ornek-chip" data-i18n="chip3" onclick="ornekAra(this.textContent)">Coffee Guide</button>
+      <button type="button" class="ornek-chip" data-i18n="chip4" onclick="ornekAra(this.textContent)">Decentralized Web</button>
     </div>
+
+    <p id="durum" class="durum"></p>
+    <div id="sonuclar" class="sonuclar"></div>
+
+    <h2 style="margin-top:26px;" data-i18n="howTitle">⚙️ How It Works?</h2>
+    <div class="adimlar">
+      <div class="adim"><div class="numara">1</div><p data-i18n="step1">Write in natural language</p></div>
+      <div class="adim"><div class="numara">2</div><p data-i18n="step2">AI matches intent &amp; directory</p></div>
+      <div class="adim"><div class="numara">3</div><p data-i18n="step3">Open persistent IPFS content</p></div>
+    </div>
+
+    <section class="hakkinda-kutu">
+      <h2 data-i18n="aboutTitle">🌐 What is AskWeb?</h2>
+      <p data-i18n="aboutDesc">AskWeb is an AI-powered decentralized search and IPFS name resolver. Instead of memorizing complex CID hashes or relying on traditional .com domains, users can find guides, open-source utilities, and permanent web pages hosted on IPFS using plain natural language.</p>
+    </section>
   </main>
 
   <footer>
-    <p>AskWeb — AI Destekli İsim Çözümleyici | Prototip Aşaması</p>
+    <div>
+      <button class="aksiyon-btn" onclick="modalAc('cryptoModal')" data-i18n="cryptoBtn">💎 Crypto Support</button>
+    </div>
+    <p data-i18n="footer">AskWeb — AI-Powered IPFS Name Resolver</p>
   </footer>
 
+  <!-- İçerik Ekleme / Sponsor Başvurusu Modalı -->
+  <div id="submitModal" class="modal-arkaplan" onclick="modalKapatDis(event, 'submitModal')">
+    <div class="modal-kutu">
+      <h3 data-i18n="submitTitle">Submit IPFS Content / Sponsor</h3>
+      <input type="text" id="subCid" placeholder="IPFS CID (Qm... or bafy...)">
+      <input type="text" id="subTitle" data-i18n-attr="placeholder:subTitlePh" placeholder="Content Title">
+      <textarea id="subDesc" rows="2" data-i18n-attr="placeholder:subDescPh" placeholder="Short description"></textarea>
+      <input type="text" id="subTags" data-i18n-attr="placeholder:subTagsPh" placeholder="Tags (comma separated)">
+      <select id="subPlan">
+        <option value="listing" data-i18n="planListing">Directory Listing (Paid / Pinning)</option>
+        <option value="sponsored" data-i18n="planSponsored">Sponsored Placement</option>
+      </select>
+      <input type="text" id="subContact" data-i18n-attr="placeholder:subContactPh" placeholder="Contact / Wallet Tx (optional)">
+      <div style="display:flex; gap:10px; justify-content:flex-end;">
+        <button class="dil-btn" onclick="modalKapat('submitModal')" data-i18n="closeBtn">Close</button>
+        <button class="birincil-btn" onclick="basvuruGonder()" data-i18n="sendBtn">Send</button>
+      </div>
+      <p id="subDurum" class="durum"></p>
+    </div>
+  </div>
+
+  <!-- Kripto Destek Modalı -->
+  <div id="cryptoModal" class="modal-arkaplan" onclick="modalKapatDis(event, 'cryptoModal')">
+    <div class="modal-kutu">
+      <h3 data-i18n="cryptoTitle">Support AskWeb via Crypto</h3>
+      <p style="font-size:0.88rem; color:#ccc;" data-i18n="cryptoDesc">Send directly or include your Tx hash in the Sponsor form.</p>
+      <div class="cuzdan-satir">
+        <span><strong>USDT (TRC20/ERC20):</strong> <span id="w_usdt">0xYOUR_EVM_ADDRESS</span></span>
+        <button class="dil-btn" onclick="kopyala('w_usdt')">Copy</button>
+      </div>
+      <div class="cuzdan-satir">
+        <span><strong>BTC:</strong> <span id="w_btc">bc1qYOUR_BTC_ADDRESS</span></span>
+        <button class="dil-btn" onclick="kopyala('w_btc')">Copy</button>
+      </div>
+      <div style="display:flex; justify-content:flex-end;">
+        <button class="dil-btn" onclick="modalKapat('cryptoModal')" data-i18n="closeBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    function demoCalistir() {
-      const sorgu = document.getElementById('sorgu').value.trim();
-      const sonuc = document.getElementById('sonuc');
-      if (!sorgu) {
-        sonuc.textContent = "Lütfen bir şey yazın.";
+    const API_BASE = "";
+
+    const CEVIRILER = {
+      en: {
+        ogLocale: "en_US",
+        title: "AskWeb | AI-Powered IPFS Name Resolver",
+        metaDesc: "Search in natural language without buying a domain and reach persistent content on IPFS with an AI-powered name resolver.",
+        ogDesc: "Search in natural language with AI and reach persistent content on IPFS without buying a domain.",
+        subtitle: "Search in natural language with an AI-powered name resolver and reach persistent content on IPFS.",
+        badge1: "No .com needed", badge2: "Anonymous", badge3: "AI-powered", badge4: "IPFS persistent",
+        searchTitle: "🔍 What are you looking for?",
+        searchPlaceholder: "e.g., Best coffee guide in Istanbul",
+        resolveBtn: "Resolve",
+        tryLabel: "Try:",
+        chip1: "IPFS Starter Guide",
+        chip2: "Open Source Tools",
+        chip3: "Coffee Guide",
+        chip4: "Decentralized Web",
+        emptyQuery: "Please type something.",
+        searching: "🤖 Resolving query...",
+        noResults: "No matching IPFS content found.",
+        sponsoredTag: "SPONSORED",
+        organicTag: "IPFS MATCH",
+        openIpfs: "Open on IPFS →",
+        howTitle: "⚙️ How It Works?",
+        step1: "Write in natural language", step2: "AI matches intent & directory", step3: "Open persistent IPFS content",
+        aboutTitle: "🌐 What is AskWeb?",
+        aboutDesc: "AskWeb is an AI-powered decentralized search and IPFS name resolver. Instead of memorizing complex CID hashes or relying on traditional .com domains, users can find guides, open-source utilities, and permanent web pages hosted on IPFS using plain natural language.",
+        addContentBtn: "+ Add Content / Sponsor",
+        cryptoBtn: "💎 Crypto Support",
+        footer: "AskWeb — AI-Powered IPFS Name Resolver",
+        submitTitle: "Submit IPFS Content / Sponsor",
+        subTitlePh: "Content Title", subDescPh: "Short description", subTagsPh: "Tags (comma separated)",
+        planListing: "Directory Listing (Paid / Pinning)", planSponsored: "Sponsored Placement",
+        subContactPh: "Contact / Wallet Tx (optional)",
+        closeBtn: "Close", sendBtn: "Send",
+        needFields: "CID, title and description are required.",
+        sentOk: "Submitted for review."
+      },
+      tr: {
+        ogLocale: "tr_TR",
+        title: "AskWeb | AI Destekli IPFS İsim Çözümleyici",
+        metaDesc: "Alan adı satın almadan doğal dilde ara ve AI destekli isim çözümleyici ile IPFS üzerinden kalıcı içeriğe ulaş.",
+        ogDesc: "Alan adı satın almadan AI ile doğal dilde ara ve IPFS üzerinden kalıcı içeriğe ulaş.",
+        subtitle: "Alan adı satın almadan, AI destekli isim çözümleyici ile doğal dilde ara ve kalıcı içeriğe ulaş.",
+        badge1: ".com gerekmez", badge2: "Anonim", badge3: "AI destekli", badge4: "IPFS kalıcı",
+        searchTitle: "🔍 Ne aramak istersin?",
+        searchPlaceholder: "Örn: İstanbul'daki en iyi kahve rehberi",
+        resolveBtn: "Çözümle",
+        tryLabel: "Örnek:",
+        chip1: "IPFS Başlangıç Rehberi",
+        chip2: "Açık Kaynak Araçlar",
+        chip3: "Kahve Rehberi",
+        chip4: "Merkeziyetsiz Web",
+        emptyQuery: "Lütfen bir şey yazın.",
+        searching: "🤖 Sorgu çözümleniyor...",
+        noResults: "Eşleşen IPFS içeriği bulunamadı.",
+        sponsoredTag: "SPONSORLU",
+        organicTag: "IPFS EŞLEŞME",
+        openIpfs: "IPFS'te Aç →",
+        howTitle: "⚙️ Nasıl Çalışır?",
+        step1: "Doğal dilde yaz", step2: "AI niyeti ve dizini eşleştirir", step3: "Kalıcı IPFS içeriğini aç",
+        aboutTitle: "🌐 AskWeb Nedir?",
+        aboutDesc: "AskWeb, yapay zekâ destekli merkeziyetsiz bir arama ve IPFS isim çözümleyicisidir. Karmaşık CID adreslerini ezberlemeye veya klasik .com alan adlarına ihtiyaç duymadan; IPFS üzerinde barındırılan rehberlere, açık kaynak araçlara ve kalıcı web sayfalarına doğal dilde arama yaparak ulaşmanızı sağlar.",
+        addContentBtn: "+ İçerik Ekle / Sponsor Ol",
+        cryptoBtn: "💎 Kripto Destek",
+        footer: "AskWeb — AI Destekli IPFS İsim Çözümleyici",
+        submitTitle: "IPFS İçeriği / Sponsorluk Başvurusu",
+        subTitlePh: "İçerik Başlığı", subDescPh: "Kısa açıklama", subTagsPh: "Etiketler (virgülle ayırın)",
+        planListing: "Ücretli Dizin Kaydı / Pinning", planSponsored: "Sponsorlu Öne Çıkarma",
+        subContactPh: "İletişim / Ödeme Tx (opsiyonel)",
+        closeBtn: "Kapat", sendBtn: "Gönder",
+        needFields: "CID, başlık ve açıklama zorunludur.",
+        sentOk: "Başvurunuz inceleme için alındı."
+      },
+      de: {
+        ogLocale: "de_DE",
+        title: "AskWeb | KI-gestützter IPFS Namensauflöser",
+        metaDesc: "In natürlicher Sprache ohne Domain suchen und über KI-Namensauflösung dauerhafte Inhalte auf IPFS erreichen.",
+        ogDesc: "Mit KI in natürlicher Sprache suchen und ohne Domain dauerhafte Inhalte auf IPFS erreichen.",
+        subtitle: "In natürlicher Sprache mit KI-Namensauflöser suchen und dauerhafte Inhalte auf IPFS erreichen.",
+        badge1: "Kein .com nötig", badge2: "Anonym", badge3: "KI-gestützt", badge4: "IPFS dauerhaft",
+        searchTitle: "🔍 Wonach suchst du?",
+        searchPlaceholder: "z. B. Bester Kaffeeführer in Istanbul",
+        resolveBtn: "Auflösen",
+        tryLabel: "Beispiele:",
+        chip1: "IPFS Einsteiger-Guide",
+        chip2: "Open-Source-Tools",
+        chip3: "Kaffeeführer",
+        chip4: "Dezentrales Web",
+        emptyQuery: "Bitte gib etwas ein.",
+        searching: "🤖 Anfrage wird aufgelöst...",
+        noResults: "Keine passenden IPFS-Inhalte gefunden.",
+        sponsoredTag: "GESPONSERT",
+        organicTag: "IPFS-TREFFER",
+        openIpfs: "Auf IPFS öffnen →",
+        howTitle: "⚙️ Wie funktioniert es?",
+        step1: "In natürlicher Sprache schreiben", step2: "KI gleicht Absicht & Verzeichnis ab", step3: "Dauerhaften IPFS-Inhalt öffnen",
+        aboutTitle: "🌐 Was ist AskWeb?",
+        aboutDesc: "AskWeb ist eine KI-gestützte dezentrale Suchmaschine und ein IPFS-Namensauflöser. Anstatt komplexe CID-Hashes zu merken oder herkömmliche .com-Domains zu nutzen, finden Nutzer Leitfäden, Open-Source-Tools und dauerhafte Webseiten auf IPFS in natürlicher Sprache.",
+        addContentBtn: "+ Inhalt hinzufügen / Sponsor",
+        cryptoBtn: "💎 Krypto-Unterstützung",
+        footer: "AskWeb — KI-gestützter IPFS Namensauflöser",
+        submitTitle: "IPFS-Inhalt / Sponsoring einreichen",
+        subTitlePh: "Titel des Inhalts", subDescPh: "Kurzbeschreibung", subTagsPh: "Tags (durch Komma getrennt)",
+        planListing: "Verzeichniseintrag / Pinning", planSponsored: "Gesponserte Platzierung",
+        subContactPh: "Kontakt / Transaktions-Hash (optional)",
+        closeBtn: "Schließen", sendBtn: "Senden",
+        needFields: "CID, Titel und Beschreibung sind erforderlich.",
+        sentOk: "Zur Prüfung eingereicht."
+      }
+    };
+
+    const ULKE_DILI = {
+      TR: "tr", DE: "de", AT: "de", CH: "de",
+      US: "en", GB: "en", CA: "en", AU: "en", NZ: "en", IE: "en"
+    };
+
+    let aktifDil = "en";
+
+    function dilDegistir(dil) {
+      aktifDil = CEVIRILER[dil] ? dil : "en";
+      const paket = CEVIRILER[aktifDil];
+      document.documentElement.lang = aktifDil;
+
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const k = el.getAttribute("data-i18n");
+        if (typeof paket[k] === "string") el.textContent = paket[k];
+      });
+
+      document.querySelectorAll("[data-i18n-attr]").forEach(el => {
+        el.getAttribute("data-i18n-attr").split(",").forEach(p => {
+          const [attr, k] = p.split(":");
+          if (attr && k && typeof paket[k] === "string") el.setAttribute(attr.trim(), paket[k]);
+        });
+      });
+
+      document.querySelectorAll(".dil-btn").forEach(btn => {
+        btn.classList.toggle("aktif", btn.getAttribute("data-lang") === aktifDil);
+      });
+    }
+
+    function tarayiciDiliBul() {
+      const list = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ""];
+      for (const d of list) {
+        const kisa = d.toLowerCase().split("-")[0];
+        if (CEVIRILER[kisa]) return kisa;
+      }
+      return null;
+    }
+
+    async function baslangicDiliniBelirle() {
+      let dil = "en";
+      try {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 1400);
+        const res = await fetch("https://ipwho.is/", { signal: ctrl.signal });
+        clearTimeout(t);
+        if (res.ok) {
+          const data = await res.json();
+          const code = (data.country_code || "").toUpperCase();
+          dil = ULKE_DILI[code] || tarayiciDiliBul() || "en";
+        } else {
+          dil = tarayiciDiliBul() || "en";
+        }
+      } catch (_) {
+        dil = tarayiciDiliBul() || "en";
+      }
+      dilDegistir(dil);
+    }
+
+    function ornekAra(metin) {
+      document.getElementById("sorgu").value = metin;
+      aramaYap();
+    }
+
+    async function tiklamaKaydet(id) {
+      if (!id) return;
+      fetch(`${API_BASE}/api/click`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id })
+      }).catch(() => {});
+    }
+
+    function kartOlustur(item, isSponsor, paket) {
+      const gatewayUrl = `https://dweb.link/ipfs/${encodeURIComponent(item.cid)}`;
+      const div = document.createElement("div");
+      div.className = `kart ${isSponsor ? "sponsor" : ""}`;
+      div.innerHTML = `
+        <span class="etiket">${isSponsor ? paket.sponsoredTag : paket.organicTag}</span>
+        <h3>${escapeHtml(item.title)}</h3>
+        <p>${escapeHtml(item.description)}</p>
+        <div class="kart-alt">
+          <span>CID: ${escapeHtml(item.cid.slice(0, 22))}...</span>
+          <a href="${gatewayUrl}" target="_blank" rel="noopener noreferrer" onclick="tiklamaKaydet(${item.id})">${paket.openIpfs}</a>
+        </div>
+      `;
+      return div;
+    }
+
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    async function aramaYap() {
+      const query = document.getElementById("sorgu").value.trim();
+      const durum = document.getElementById("durum");
+      const sonuclar = document.getElementById("sonuclar");
+      const paket = CEVIRILER[aktifDil] || CEVIRILER.en;
+
+      sonuclar.innerHTML = "";
+      if (!query) {
+        durum.textContent = paket.emptyQuery;
         return;
       }
-      sonuc.textContent = "🤖 AI analiz ediyor...";
-      setTimeout(() => {
-        sonuc.textContent = `✅ "${sorgu}" için eşleşen içerik bulundu → IPFS: QmXyz123... (demo)`;
-      }, 800);
-    }
-  </script>
 
+      durum.textContent = paket.searching;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/resolve`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query, lang: aktifDil })
+        });
+        const data = await res.json();
+        durum.textContent = "";
+
+        if (data.sponsored) {
+          sonuclar.appendChild(kartOlustur(data.sponsored, true, paket));
+        }
+        if (Array.isArray(data.organic) && data.organic.length > 0) {
+          data.organic.forEach(item => sonuclar.appendChild(kartOlustur(item, false, paket)));
+        }
+        if (!data.sponsored && (!data.organic || data.organic.length === 0)) {
+          durum.textContent = paket.noResults;
+        }
+      } catch (e) {
+        durum.textContent = paket.noResults;
+      }
+    }
+
+    function modalAc(id) { document.getElementById(id).classList.add("acik"); }
+    function modalKapat(id) { document.getElementById(id).classList.remove("acik"); }
+    function modalKapatDis(e, id) { if (e.target.id === id) modalKapat(id); }
+
+    function kopyala(elId) {
+      const txt = document.getElementById(elId).textContent;
+      navigator.clipboard?.writeText(txt);
+    }
+
+    async function basvuruGonder() {
+      const paket = CEVIRILER[aktifDil] || CEVIRILER.en;
+      const subDurum = document.getElementById("subDurum");
+      const payload = {
+        cid: document.getElementById("subCid").value.trim(),
+        title: document.getElementById("subTitle").value.trim(),
+        description: document.getElementById("subDesc").value.trim(),
+        tags: document.getElementById("subTags").value.trim(),
+        plan: document.getElementById("subPlan").value,
+        contact: document.getElementById("subContact").value.trim()
+      };
+
+      if (!payload.cid || !payload.title || !payload.description) {
+        subDurum.textContent = paket.needFields;
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/submit`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          subDurum.textContent = paket.sentOk;
+        } else {
+          subDurum.textContent = "Error";
+        }
+      } catch (_) {
+        subDurum.textContent = "Error";
+      }
+    }
+
+    document.getElementById("sorgu").addEventListener("keydown", e => {
+      if (e.key === "Enter") aramaYap();
+    });
+
+    baslangicDiliniBelirle();
+  </script>
 </body>
 </html>
