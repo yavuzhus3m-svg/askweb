@@ -142,6 +142,7 @@
       color: #00d2ff;
     }
     .durum { color: #00d2ff; font-size: 0.92rem; min-height: 22px; margin-top: 6px; }
+    .durum.hata { color: #ff6b81; }
     .sonuclar { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
     .kart {
       background: rgba(0,0,0,0.28);
@@ -349,7 +350,7 @@
       <button type="button" class="ornek-chip" data-i18n="chip4" onclick="ornekAra(this.textContent)">Decentralized Web</button>
     </div>
 
-    <p id="durum" class="durum"></p>
+    <p id="durum" class="durum" role="status" aria-live="polite"></p>
     <div id="sonuclar" class="sonuclar"></div>
 
     <h2 style="margin-top:26px;" data-i18n="howTitle">⚙️ How It Works?</h2>
@@ -387,9 +388,9 @@
       <input type="text" id="subContact" data-i18n-attr="placeholder:subContactPh" placeholder="Contact / Wallet Tx (optional)">
       <div style="display:flex; gap:10px; justify-content:flex-end;">
         <button type="button" class="ikincil-btn" onclick="modalKapat('submitModal')" data-i18n="closeBtn">Close</button>
-        <button type="button" class="birincil-btn" onclick="basvuruGonder()" data-i18n="sendBtn">Send</button>
+        <button type="button" id="subSendBtn" class="birincil-btn" onclick="basvuruGonder()" data-i18n="sendBtn">Send</button>
       </div>
-      <p id="subDurum" class="durum"></p>
+      <p id="subDurum" class="durum" role="status" aria-live="polite"></p>
     </div>
   </div>
 
@@ -477,6 +478,7 @@
 
   <script>
     const API_BASE = "";
+    const DEFAULT_TIMEOUT_MS = 8000;
 
     const CEVIRILER = {
       en: {
@@ -492,6 +494,7 @@
         tryLabel: "Try:",
         chip1: "IPFS Starter Guide", chip2: "Open Source Tools", chip3: "Coffee Guide", chip4: "Decentralized Web",
         emptyQuery: "Please type something.", searching: "🤖 Resolving query...", noResults: "No matching IPFS content found.",
+        networkError: "Unable to reach resolver service. Please try again.",
         sponsoredTag: "SPONSORED", organicTag: "IPFS MATCH", openIpfs: "Open on IPFS →",
         howTitle: "⚙️ How It Works?",
         step1: "Write in natural language", step2: "AI matches intent & directory", step3: "Open persistent IPFS content",
@@ -503,8 +506,9 @@
         subTitlePh: "Content Title", subDescPh: "Short description", subTagsPh: "Tags (comma separated)",
         planListing: "Directory Listing (Paid / Pinning)", planSponsored: "Sponsored Placement",
         subContactPh: "Contact / Wallet Tx (optional)",
-        copyBtn: "Copy", copiedBtn: "Copied", closeBtn: "Close", sendBtn: "Send",
-        needFields: "CID, title and description are required.", sentOk: "Submitted for review."
+        copyBtn: "Copy", copiedBtn: "Copied", closeBtn: "Close", sendBtn: "Send", sendingBtn: "Sending...",
+        needFields: "CID, title and description are required.", sentOk: "Submitted for review.",
+        submitError: "Submission failed. Please try again."
       },
       zh: {
         ogLocale: "zh_CN",
@@ -519,6 +523,7 @@
         tryLabel: "试试：",
         chip1: "IPFS 入门指南", chip2: "开源工具", chip3: "咖啡指南", chip4: "去中心化网络",
         emptyQuery: "请输入内容。", searching: "🤖 正在解析查询...", noResults: "未找到匹配的 IPFS 内容。",
+        networkError: "无法连接解析服务，请稍后再试。",
         sponsoredTag: "赞助", organicTag: "IPFS 匹配", openIpfs: "在 IPFS 中打开 →",
         howTitle: "⚙️ 工作原理",
         step1: "用自然语言输入", step2: "AI 匹配意图与目录", step3: "打开 IPFS 永久内容",
@@ -530,8 +535,9 @@
         subTitlePh: "内容标题", subDescPh: "简短描述", subTagsPh: "标签（逗号分隔）",
         planListing: "目录收录 / 固定存储", planSponsored: "赞助位展示",
         subContactPh: "联系方式 / 交易哈希（可选）",
-        copyBtn: "复制", copiedBtn: "已复制", closeBtn: "关闭", sendBtn: "发送",
-        needFields: "CID、标题和描述为必填项。", sentOk: "已提交审核。"
+        copyBtn: "复制", copiedBtn: "已复制", closeBtn: "关闭", sendBtn: "发送", sendingBtn: "发送中...",
+        needFields: "CID、标题和描述为必填项。", sentOk: "已提交审核。",
+        submitError: "提交失败，请重试。"
       },
       hi: {
         ogLocale: "hi_IN",
@@ -546,6 +552,7 @@
         tryLabel: "आज़माएं:",
         chip1: "IPFS शुरुआती गाइड", chip2: "ओपन सोर्स टूल्स", chip3: "कॉफ़ी गाइड", chip4: "विकेंद्रीकृत वेब",
         emptyQuery: "कृपया कुछ लिखें।", searching: "🤖 क्वेरी हल की जा रही है...", noResults: "कोई मेल खाती IPFS सामग्री नहीं मिली।",
+        networkError: "रिज़ॉल्वर सेवा से जुड़ नहीं सके। कृपया पुनः प्रयास करें।",
         sponsoredTag: "प्रायोजित", organicTag: "IPFS मिलान", openIpfs: "IPFS पर खोलें →",
         howTitle: "⚙️ यह कैसे काम करता है?",
         step1: "सामान्य भाषा में लिखें", step2: "AI उद्देश्य और निर्देशिका मिलाता है", step3: "IPFS पर स्थायी सामग्री खोलें",
@@ -557,8 +564,9 @@
         subTitlePh: "सामग्री का शीर्षक", subDescPh: "संक्षिप्त विवरण", subTagsPh: "टैग (अल्पविराम से अलग करें)",
         planListing: "निर्देशिका सूची / पिनिंग", planSponsored: "प्रायोजित स्थान",
         subContactPh: "संपर्क / Tx हैश (वैकल्पिक)",
-        copyBtn: "कॉपी", copiedBtn: "कॉपी हो गया", closeBtn: "बंद करें", sendBtn: "भेजें",
-        needFields: "CID, शीर्षक और विवरण आवश्यक हैं।", sentOk: "समीक्षा के लिए भेज दिया गया।"
+        copyBtn: "कॉपी", copiedBtn: "कॉपी हो गया", closeBtn: "बंद करें", sendBtn: "भेजें", sendingBtn: "भेजा जा रहा है...",
+        needFields: "CID, शीर्षक और विवरण आवश्यक हैं।", sentOk: "समीक्षा के लिए भेज दिया गया।",
+        submitError: "भेजने में त्रुटि हुई। कृपया पुनः प्रयास करें।"
       },
       es: {
         ogLocale: "es_ES",
@@ -573,6 +581,7 @@
         tryLabel: "Probar:",
         chip1: "Guía inicial de IPFS", chip2: "Herramientas Open Source", chip3: "Guía de café", chip4: "Web descentralizada",
         emptyQuery: "Escribe algo por favor.", searching: "🤖 Resolviendo consulta...", noResults: "No se encontró contenido IPFS coincidente.",
+        networkError: "No se pudo conectar con el servicio. Inténtalo de nuevo.",
         sponsoredTag: "PATROCINADO", organicTag: "COINCIDENCIA IPFS", openIpfs: "Abrir en IPFS →",
         howTitle: "⚙️ ¿Cómo funciona?",
         step1: "Escribe en lenguaje natural", step2: "La IA vincula intención y directorio", step3: "Abre contenido persistente en IPFS",
@@ -584,8 +593,9 @@
         subTitlePh: "Título del contenido", subDescPh: "Descripción corta", subTagsPh: "Etiquetas (separadas por coma)",
         planListing: "Listado en directorio / Pinning", planSponsored: "Ubicación patrocinada",
         subContactPh: "Contacto / Tx de pago (opcional)",
-        copyBtn: "Copiar", copiedBtn: "Copiado", closeBtn: "Cerrar", sendBtn: "Enviar",
-        needFields: "CID, título y descripción son obligatorios.", sentOk: "Enviado para revisión."
+        copyBtn: "Copiar", copiedBtn: "Copiado", closeBtn: "Cerrar", sendBtn: "Enviar", sendingBtn: "Enviando...",
+        needFields: "CID, título y descripción son obligatorios.", sentOk: "Enviado para revisión.",
+        submitError: "Error al enviar. Inténtalo de nuevo."
       },
       ar: {
         ogLocale: "ar_AR",
@@ -600,6 +610,7 @@
         tryLabel: "جرّب:",
         chip1: "دليل البداية مع IPFS", chip2: "أدوات مفتوحة المصدر", chip3: "دليل القهوة", chip4: "الويب اللامركزي",
         emptyQuery: "يرجى كتابة شيء ما.", searching: "🤖 جارٍ تحليل الطلب...", noResults: "لم يتم العثور على محتوى IPFS مطابق.",
+        networkError: "تعذر الوصول إلى خدمة البحث. حاول مرة أخرى.",
         sponsoredTag: "برعاية", organicTag: "مطابقة IPFS", openIpfs: "فتح على IPFS ←",
         howTitle: "⚙️ كيف يعمل؟",
         step1: "اكتب باللغة الطبيعية", step2: "يطابق الذكاء الاصطناعي القصد والفهرس", step3: "افتح محتوى IPFS الدائم",
@@ -611,8 +622,9 @@
         subTitlePh: "عنوان المحتوى", subDescPh: "وصف مختصر", subTagsPh: "الوسوم (مفصولة بفاصلة)",
         planListing: "إدراج في الفهرس / تثبيت", planSponsored: "إعلان ممول",
         subContactPh: "وسيلة تواصل / رقم المعاملة Tx (اختياري)",
-        copyBtn: "نسخ", copiedBtn: "تم النسخ", closeBtn: "إغلاق", sendBtn: "إرسال",
-        needFields: "حقول CID والعنوان والوصف مطلوبة.", sentOk: "تم الإرسال للمراجعة."
+        copyBtn: "نسخ", copiedBtn: "تم النسخ", closeBtn: "إغلاق", sendBtn: "إرسال", sendingBtn: "جارٍ الإرسال...",
+        needFields: "حقول CID والعنوان والوصف مطلوبة.", sentOk: "تم الإرسال للمراجعة.",
+        submitError: "فشل الإرسال. حاول مرة أخرى."
       },
       fr: {
         ogLocale: "fr_FR",
@@ -627,6 +639,7 @@
         tryLabel: "Essayer :",
         chip1: "Guide de démarrage IPFS", chip2: "Outils Open Source", chip3: "Guide Café", chip4: "Web décentralisé",
         emptyQuery: "Veuillez saisir un texte.", searching: "🤖 Résolution de la requête...", noResults: "Aucun contenu IPFS correspondant trouvé.",
+        networkError: "Service indisponible. Veuillez réessayer.",
         sponsoredTag: "SPONSORISÉ", organicTag: "CORRESPONDANCE IPFS", openIpfs: "Ouvrir sur IPFS →",
         howTitle: "⚙️ Comment ça marche ?",
         step1: "Écrivez en langage naturel", step2: "L'IA associe intention et annuaire", step3: "Ouvrez le contenu IPFS persistant",
@@ -638,8 +651,9 @@
         subTitlePh: "Titre du contenu", subDescPh: "Courte description", subTagsPh: "Tags (séparés par des virgules)",
         planListing: "Inscription annuaire / Pinning", planSponsored: "Placement sponsorisé",
         subContactPh: "Contact / Tx de paiement (optionnel)",
-        copyBtn: "Copier", copiedBtn: "Copié", closeBtn: "Fermer", sendBtn: "Envoyer",
-        needFields: "Le CID, le titre et la description sont requis.", sentOk: "Soumis pour vérification."
+        copyBtn: "Copier", copiedBtn: "Copié", closeBtn: "Fermer", sendBtn: "Envoyer", sendingBtn: "Envoi...",
+        needFields: "Le CID, le titre et la description sont requis.", sentOk: "Soumis pour vérification.",
+        submitError: "Échec de l'envoi. Veuillez réessayer."
       },
       bn: {
         ogLocale: "bn_BD",
@@ -654,6 +668,7 @@
         tryLabel: "চেষ্টা করুন:",
         chip1: "IPFS শুরু করার গাইড", chip2: "ওপেন সোর্স টুলস", chip3: "কফি গাইড", chip4: "বিকেন্দ্রীকৃত ওয়েব",
         emptyQuery: "অনুগ্রহ করে কিছু লিখুন।", searching: "🤖 অনুসন্ধান প্রক্রিয়াকরণ হচ্ছে...", noResults: "কোনো মানানসই IPFS কন্টেন্ট পাওয়া যায়নি।",
+        networkError: "সার্ভিসে সংযোগ করা যাচ্ছে না। আবার চেষ্টা করুন।",
         sponsoredTag: "স্পন্সর্ড", organicTag: "IPFS ম্যাচ", openIpfs: "IPFS-এ খুলুন →",
         howTitle: "⚙️ এটি কীভাবে কাজ করে?",
         step1: "স্বাভাবিক ভাষায় লিখুন", step2: "AI উদ্দেশ্য ও ডিরেক্টরি মেলায়", step3: "IPFS-এর স্থায়ী কন্টেন্ট খুলুন",
@@ -665,8 +680,9 @@
         subTitlePh: "কন্টেন্টের শিরোনাম", subDescPh: "সংক্ষিপ্ত বিবরণ", subTagsPh: "ট্যাগ (কমা দিয়ে আলাদা করুন)",
         planListing: "ডিরেক্টরি তালিকা / পিনিং", planSponsored: "স্পন্সর্ড প্লেসমেন্ট",
         subContactPh: "যোগাযোগ / Tx হ্যাশ (ঐচ্ছিক)",
-        copyBtn: "কপি", copiedBtn: "কপি হয়েছে", closeBtn: "বন্ধ করুন", sendBtn: "পাঠান",
-        needFields: "CID, শিরোনাম এবং বিবরণ আবশ্যক।", sentOk: "পর্যালোচনার জন্য জমা দেওয়া হয়েছে।"
+        copyBtn: "কপি", copiedBtn: "কপি হয়েছে", closeBtn: "বন্ধ করুন", sendBtn: "পাঠান", sendingBtn: "পাঠানো হচ্ছে...",
+        needFields: "CID, শিরোনাম এবং বিবরণ আবশ্যক।", sentOk: "পর্যালোচনার জন্য জমা দেওয়া হয়েছে।",
+        submitError: "পাঠাতে ব্যর্থ হয়েছে। আবার চেষ্টা করুন।"
       },
       pt: {
         ogLocale: "pt_PT",
@@ -681,6 +697,7 @@
         tryLabel: "Experimente:",
         chip1: "Guia inicial do IPFS", chip2: "Ferramentas Open Source", chip3: "Guia de café", chip4: "Web descentralizada",
         emptyQuery: "Digite algo por favor.", searching: "🤖 Resolvendo consulta...", noResults: "Nenhum conteúdo IPFS correspondente encontrado.",
+        networkError: "Não foi possível conectar ao serviço. Tente novamente.",
         sponsoredTag: "PATROCINADO", organicTag: "CORRESPONDÊNCIA IPFS", openIpfs: "Abrir no IPFS →",
         howTitle: "⚙️ Como funciona?",
         step1: "Escreva em linguagem natural", step2: "IA combina intenção e diretório", step3: "Abra conteúdo persistente no IPFS",
@@ -692,8 +709,9 @@
         subTitlePh: "Título do conteúdo", subDescPh: "Descrição curta", subTagsPh: "Tags (separadas por vírgula)",
         planListing: "Listagem no diretório / Pinning", planSponsored: "Destaque patrocinado",
         subContactPh: "Contato / Tx de pagamento (opcional)",
-        copyBtn: "Copiar", copiedBtn: "Copiado", closeBtn: "Fechar", sendBtn: "Enviar",
-        needFields: "CID, título e descrição são obrigatórios.", sentOk: "Enviado para análise."
+        copyBtn: "Copiar", copiedBtn: "Copiado", closeBtn: "Fechar", sendBtn: "Enviar", sendingBtn: "Enviando...",
+        needFields: "CID, título e descrição são obrigatórios.", sentOk: "Enviado para análise.",
+        submitError: "Falha ao enviar. Tente novamente."
       },
       ru: {
         ogLocale: "ru_RU",
@@ -708,6 +726,7 @@
         tryLabel: "Примеры:",
         chip1: "Гид по IPFS", chip2: "Open-Source инструменты", chip3: "Гид по кофе", chip4: "Децентрализованный веб",
         emptyQuery: "Введите запрос.", searching: "🤖 Обработка запроса...", noResults: "Подходящий контент IPFS не найден.",
+        networkError: "Не удалось связаться со службой. Попробуйте снова.",
         sponsoredTag: "СПОНСОР", organicTag: "СОВПАДЕНИЕ IPFS", openIpfs: "Открыть в IPFS →",
         howTitle: "⚙️ Как это работает?",
         step1: "Напишите запрос обычным языком", step2: "ИИ сопоставляет смысл и каталог", step3: "Откройте постоянный контент IPFS",
@@ -719,8 +738,9 @@
         subTitlePh: "Название контента", subDescPh: "Краткое описание", subTagsPh: "Теги (через запятую)",
         planListing: "Размещение в каталоге / Пининг", planSponsored: "Спонсорское размещение",
         subContactPh: "Контакт / Хэш транзакции (необязательно)",
-        copyBtn: "Копировать", copiedBtn: "Скопировано", closeBtn: "Закрыть", sendBtn: "Отправить",
-        needFields: "Укажите CID, название и описание.", sentOk: "Отправлено на проверку."
+        copyBtn: "Копировать", copiedBtn: "Скопировано", closeBtn: "Закрыть", sendBtn: "Отправить", sendingBtn: "Отправка...",
+        needFields: "Укажите CID, название и описание.", sentOk: "Отправлено на проверку.",
+        submitError: "Ошибка отправки. Попробуйте снова."
       },
       ur: {
         ogLocale: "ur_PK",
@@ -735,6 +755,7 @@
         tryLabel: "آزمائیں:",
         chip1: "IPFS ابتدائی گائیڈ", chip2: "اوپن سورس ٹولز", chip3: "کافی گائیڈ", chip4: "لامرکز ویب",
         emptyQuery: "براہ کرم کچھ لکھیں۔", searching: "🤖 تلاش پر عمل جاری ہے...", noResults: "کوئی مماثل IPFS مواد نہیں ملا۔",
+        networkError: "سروس سے رابطہ نہیں ہو سکا۔ دوبارہ کوشش کریں۔",
         sponsoredTag: "سپانسرڈ", organicTag: "IPFS مماثلت", openIpfs: "IPFS پر کھولیں ←",
         howTitle: "⚙️ یہ کیسے کام کرتا ہے؟",
         step1: "قدرتی زبان میں لکھیں", step2: "AI مقصد اور ڈائریکٹری ملاتا ہے", step3: "IPFS کا مستقل مواد کھولیں",
@@ -746,8 +767,9 @@
         subTitlePh: "مواد کا عنوان", subDescPh: "مختصر تفصیل", subTagsPh: "ٹیگز (کوما سے الگ کریں)",
         planListing: "ڈائریکٹری لسٹنگ / پننگ", planSponsored: "سپانسرڈ جگہ",
         subContactPh: "رابطہ / Tx ہیش (اختیاری)",
-        copyBtn: "کاپی", copiedBtn: "کاپی ہو گیا", closeBtn: "بند کریں", sendBtn: "بھیجیں",
-        needFields: "CID، عنوان اور تفصیل درکار ہیں۔", sentOk: "جائزے کے لیے بھیج دیا گیا۔"
+        copyBtn: "کاپی", copiedBtn: "کاپی ہو گیا", closeBtn: "بند کریں", sendBtn: "بھیجیں", sendingBtn: "بھیجا جا رہا ہے...",
+        needFields: "CID، عنوان اور تفصیل درکار ہیں۔", sentOk: "جائزے کے لیے بھیج دیا گیا۔",
+        submitError: "بھیجنے میں ناکامی۔ دوبارہ کوشش کریں۔"
       },
       id: {
         ogLocale: "id_ID",
@@ -762,6 +784,7 @@
         tryLabel: "Coba:",
         chip1: "Panduan Awal IPFS", chip2: "Alat Open Source", chip3: "Panduan Kopi", chip4: "Web Terdesentralisasi",
         emptyQuery: "Silakan ketik sesuatu.", searching: "🤖 Memproses kueri...", noResults: "Tidak ditemukan konten IPFS yang cocok.",
+        networkError: "Gagal menghubungi layanan. Silakan coba lagi.",
         sponsoredTag: "SPONSOR", organicTag: "COCOK IPFS", openIpfs: "Buka di IPFS →",
         howTitle: "⚙️ Bagaimana Cara Kerjanya?",
         step1: "Tulis dalam bahasa alami", step2: "AI mencocokkan maksud & direktori", step3: "Buka konten IPFS persisten",
@@ -773,8 +796,9 @@
         subTitlePh: "Judul Konten", subDescPh: "Deskripsi singkat", subTagsPh: "Tag (pisahkan dengan koma)",
         planListing: "Daftar Direktori / Pinning", planSponsored: "Penempatan Bersponsor",
         subContactPh: "Kontak / Hash Tx (opsional)",
-        copyBtn: "Salin", copiedBtn: "Tersalin", closeBtn: "Tutup", sendBtn: "Kirim",
-        needFields: "CID, judul, dan deskripsi wajib diisi.", sentOk: "Dikirim untuk ditinjau."
+        copyBtn: "Salin", copiedBtn: "Tersalin", closeBtn: "Tutup", sendBtn: "Kirim", sendingBtn: "Mengirim...",
+        needFields: "CID, judul, dan deskripsi wajib diisi.", sentOk: "Dikirim untuk ditinjau.",
+        submitError: "Gagal mengirim. Silakan coba lagi."
       },
       tr: {
         ogLocale: "tr_TR",
@@ -789,6 +813,7 @@
         tryLabel: "Örnek:",
         chip1: "IPFS Başlangıç Rehberi", chip2: "Açık Kaynak Araçlar", chip3: "Kahve Rehberi", chip4: "Merkeziyetsiz Web",
         emptyQuery: "Lütfen bir şey yazın.", searching: "🤖 Sorgu çözümleniyor...", noResults: "Eşleşen IPFS içeriği bulunamadı.",
+        networkError: "Çözümleme servisine ulaşılamadı. Lütfen tekrar deneyin.",
         sponsoredTag: "SPONSORLU", organicTag: "IPFS EŞLEŞME", openIpfs: "IPFS'te Aç →",
         howTitle: "⚙️ Nasıl Çalışır?",
         step1: "Doğal dilde yaz", step2: "AI niyeti ve dizini eşleştirir", step3: "Kalıcı IPFS içeriğini aç",
@@ -800,8 +825,9 @@
         subTitlePh: "İçerik Başlığı", subDescPh: "Kısa açıklama", subTagsPh: "Etiketler (virgülle ayırın)",
         planListing: "Ücretli Dizin Kaydı / Pinning", planSponsored: "Sponsorlu Öne Çıkarma",
         subContactPh: "İletişim / Ödeme Tx (opsiyonel)",
-        copyBtn: "Kopyala", copiedBtn: "Kopyalandı", closeBtn: "Kapat", sendBtn: "Gönder",
-        needFields: "CID, başlık ve açıklama zorunludur.", sentOk: "Başvurunuz inceleme için alındı."
+        copyBtn: "Kopyala", copiedBtn: "Kopyalandı", closeBtn: "Kapat", sendBtn: "Gönder", sendingBtn: "Gönderiliyor...",
+        needFields: "CID, başlık ve açıklama zorunludur.", sentOk: "Başvurunuz inceleme için alındı.",
+        submitError: "Gönderim başarısız oldu. Lütfen tekrar deneyin."
       },
       de: {
         ogLocale: "de_DE",
@@ -816,6 +842,7 @@
         tryLabel: "Beispiele:",
         chip1: "IPFS Einsteiger-Guide", chip2: "Open-Source-Tools", chip3: "Kaffeeführer", chip4: "Dezentrales Web",
         emptyQuery: "Bitte gib etwas ein.", searching: "🤖 Anfrage wird aufgelöst...", noResults: "Keine passenden IPFS-Inhalte gefunden.",
+        networkError: "Dienst nicht erreichbar. Bitte versuche es erneut.",
         sponsoredTag: "GESPONSERT", organicTag: "IPFS-TREFFER", openIpfs: "Auf IPFS öffnen →",
         howTitle: "⚙️ Wie funktioniert es?",
         step1: "In natürlicher Sprache schreiben", step2: "KI gleicht Absicht & Verzeichnis ab", step3: "Dauerhaften IPFS-Inhalt öffnen",
@@ -827,8 +854,9 @@
         subTitlePh: "Titel des Inhalts", subDescPh: "Kurzbeschreibung", subTagsPh: "Tags (durch Komma getrennt)",
         planListing: "Verzeichniseintrag / Pinning", planSponsored: "Gesponserte Platzierung",
         subContactPh: "Kontakt / Transaktions-Hash (optional)",
-        copyBtn: "Kopieren", copiedBtn: "Kopiert", closeBtn: "Schließen", sendBtn: "Senden",
-        needFields: "CID, Titel und Beschreibung sind erforderlich.", sentOk: "Zur Prüfung eingereicht."
+        copyBtn: "Kopieren", copiedBtn: "Kopiert", closeBtn: "Schließen", sendBtn: "Senden", sendingBtn: "Wird gesendet...",
+        needFields: "CID, Titel und Beschreibung sind erforderlich.", sentOk: "Zur Prüfung eingereicht.",
+        submitError: "Senden fehlgeschlagen. Bitte versuche es erneut."
       },
       ja: {
         ogLocale: "ja_JP",
@@ -843,6 +871,7 @@
         tryLabel: "例：",
         chip1: "IPFS入門ガイド", chip2: "オープンソースツール", chip3: "コーヒーガイド", chip4: "分散型Web",
         emptyQuery: "何か入力してください。", searching: "🤖 クエリを解決中...", noResults: "一致するIPFSコンテンツが見つかりません。",
+        networkError: "サービスに接続できません。もう一度お試しください。",
         sponsoredTag: "スポンサー", organicTag: "IPFS一致", openIpfs: "IPFSで開く →",
         howTitle: "⚙️ 仕組み",
         step1: "自然言語で入力", step2: "AIが意図とディレクトリを照合", step3: "永続的なIPFSコンテンツを開く",
@@ -854,8 +883,9 @@
         subTitlePh: "コンテンツタイトル", subDescPh: "簡単な説明", subTagsPh: "タグ（カンマ区切り）",
         planListing: "ディレクトリ掲載 / ピニング", planSponsored: "スポンサー掲載",
         subContactPh: "連絡先 / 送金Tx（任意）",
-        copyBtn: "コピー", copiedBtn: "コピー済", closeBtn: "閉じる", sendBtn: "送信",
-        needFields: "CID、タイトル、説明は必須です。", sentOk: "審査用に送信されました。"
+        copyBtn: "コピー", copiedBtn: "コピー済", closeBtn: "閉じる", sendBtn: "送信", sendingBtn: "送信中...",
+        needFields: "CID、タイトル、説明は必須です。", sentOk: "審査用に送信されました。",
+        submitError: "送信に失敗しました。もう一度お試しください。"
       },
       ht: {
         ogLocale: "ht_HT",
@@ -870,6 +900,7 @@
         tryLabel: "Eseye:",
         chip1: "Gid Debutant IPFS", chip2: "Zouti Open Source", chip3: "Gid Kafe", chip4: "Entènèt Desantralize",
         emptyQuery: "Tanpri ekri yon bagay.", searching: "🤖 Ap rezoud rechèch la...", noResults: "Pa gen kontni IPFS ki koresponn.",
+        networkError: "Pa ka jwenn sèvis la. Tanpri eseye ankò.",
         sponsoredTag: "SPONSÈ", organicTag: "KORESPONDANS IPFS", openIpfs: "Louvri sou IPFS →",
         howTitle: "⚙️ Kijan li mache?",
         step1: "Ekri nan lang natirèl", step2: "IA asosye entansyon ak katalòg la", step3: "Louvri kontni IPFS pèmanan an",
@@ -881,8 +912,9 @@
         subTitlePh: "Tit Kontni an", subDescPh: "Ti deskripsyon", subTagsPh: "Etikèt (separe ak vigil)",
         planListing: "Enskripsyon Katalòg / Pinning", planSponsored: "Plasman Sponsò",
         subContactPh: "Kontak / Tx Tranzaksyon (opsyonèl)",
-        copyBtn: "Kopye", copiedBtn: "Kopye!", closeBtn: "Fèmen", sendBtn: "Voye",
-        needFields: "CID, tit ak deskripsyon obligatwa.", sentOk: "Voye pou revizyon."
+        copyBtn: "Kopye", copiedBtn: "Kopye!", closeBtn: "Fèmen", sendBtn: "Voye", sendingBtn: "Ap voye...",
+        needFields: "CID, tit ak deskripsyon obligatwa.", sentOk: "Voye pou revizyon.",
+        submitError: "Voye a echwe. Tanpri eseye ankò."
       },
       th: {
         ogLocale: "th_TH",
@@ -897,6 +929,7 @@
         tryLabel: "ลอง:",
         chip1: "คู่มือเริ่มต้น IPFS", chip2: "เครื่องมือโอเพนซอร์ส", chip3: "คู่มือกาแฟ", chip4: "เว็บแบบกระจายศูนย์",
         emptyQuery: "กรุณาพิมพ์ข้อความ", searching: "🤖 กำลังประมวลผลคำค้นหา...", noResults: "ไม่พบเนื้อหา IPFS ที่ตรงกัน",
+        networkError: "ไม่สามารถเชื่อมต่อบริการได้ กรุณาลองอีกครั้ง",
         sponsoredTag: "ผู้สนับสนุน", organicTag: "ตรงกับ IPFS", openIpfs: "เปิดบน IPFS →",
         howTitle: "⚙️ ทำงานอย่างไร?",
         step1: "พิมพ์ด้วยภาษาธรรมชาติ", step2: "AI จับคู่ความตั้งใจกับสารบัญ", step3: "เปิดเนื้อหาถาวรบน IPFS",
@@ -908,8 +941,9 @@
         subTitlePh: "ชื่อเนื้อหา", subDescPh: "คำอธิบายสั้นๆ", subTagsPh: "แท็ก (คั่นด้วยจุลภาค)",
         planListing: "ลงสารบัญ / ปักหมุดไฟล์", planSponsored: "ตำแหน่งผู้สนับสนุน",
         subContactPh: "ช่องทางติดต่อ / Tx โอนเงิน (ไม่บังคับ)",
-        copyBtn: "คัดลอก", copiedBtn: "คัดลอกแล้ว", closeBtn: "ปิด", sendBtn: "ส่ง",
-        needFields: "กรุณากรอก CID ชื่อ และคำอธิบาย", sentOk: "ส่งเพื่อตรวจสอบเรียบร้อยแล้ว"
+        copyBtn: "คัดลอก", copiedBtn: "คัดลอกแล้ว", closeBtn: "ปิด", sendBtn: "ส่ง", sendingBtn: "กำลังส่ง...",
+        needFields: "กรุณากรอก CID ชื่อ และคำอธิบาย", sentOk: "ส่งเพื่อตรวจสอบเรียบร้อยแล้ว",
+        submitError: "ส่งไม่สำเร็จ กรุณาลองอีกครั้ง"
       }
     };
 
@@ -933,10 +967,82 @@
     };
 
     let aktifDil = "en";
+    let aktifAramaDenetleyici = null;
+
+    function paketAl() {
+      return CEVIRILER[aktifDil] || CEVIRILER.en;
+    }
+
+    function durumYaz(el, mesaj, isError = false) {
+      if (!el) return;
+      el.textContent = mesaj || "";
+      el.classList.toggle("hata", Boolean(isError && mesaj));
+    }
+
+    async function apiFetch(url, options = {}) {
+      const { timeoutMs = DEFAULT_TIMEOUT_MS, headers = {}, body, signal: externalSignal, ...rest } = options;
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(new Error("Request timeout")), timeoutMs);
+
+      const onAbort = () => controller.abort(externalSignal.reason);
+      if (externalSignal) {
+        if (externalSignal.aborted) {
+          clearTimeout(timer);
+          throw externalSignal.reason || new Error("Aborted");
+        }
+        externalSignal.addEventListener("abort", onAbort, { once: true });
+      }
+
+      const finalHeaders = { ...headers };
+      let finalBody = body;
+      if (body !== undefined && typeof body === "object" && !(body instanceof FormData) && !(body instanceof URLSearchParams)) {
+        if (!finalHeaders["Content-Type"]) {
+          finalHeaders["Content-Type"] = "application/json";
+        }
+        finalBody = JSON.stringify(body);
+      }
+
+      try {
+        const res = await fetch(url, {
+          ...rest,
+          headers: finalHeaders,
+          body: finalBody,
+          signal: controller.signal
+        });
+
+        const contentType = res.headers.get("content-type") || "";
+        let data = null;
+        if (contentType.includes("application/json")) {
+          data = await res.json().catch(() => null);
+        } else {
+          const text = await res.text().catch(() => "");
+          try {
+            data = text ? JSON.parse(text) : null;
+          } catch (_) {
+            data = text;
+          }
+        }
+
+        if (!res.ok) {
+          const serverMsg = data && typeof data === "object" ? (data.error || data.message) : "";
+          const err = new Error(serverMsg || `HTTP ${res.status}`);
+          err.status = res.status;
+          err.data = data;
+          throw err;
+        }
+
+        return data;
+      } finally {
+        clearTimeout(timer);
+        if (externalSignal) {
+          externalSignal.removeEventListener("abort", onAbort);
+        }
+      }
+    }
 
     function dilDegistir(dil) {
       aktifDil = CEVIRILER[dil] ? dil : "en";
-      const paket = CEVIRILER[aktifDil];
+      const paket = paketAl();
 
       document.documentElement.lang = aktifDil;
       document.documentElement.dir = (aktifDil === "ar" || aktifDil === "ur") ? "rtl" : "ltr";
@@ -971,17 +1077,9 @@
     async function baslangicDiliniBelirle() {
       let dil = "en";
       try {
-        const ctrl = new AbortController();
-        const t = setTimeout(() => ctrl.abort(), 1400);
-        const res = await fetch("https://ipwho.is/", { signal: ctrl.signal });
-        clearTimeout(t);
-        if (res.ok) {
-          const data = await res.json();
-          const code = (data.country_code || "").toUpperCase();
-          dil = ULKE_DILI[code] || tarayiciDiliBul() || "en";
-        } else {
-          dil = tarayiciDiliBul() || "en";
-        }
+        const data = await apiFetch("https://ipwho.is/", { timeoutMs: 1500 });
+        const code = (data && data.country_code ? String(data.country_code) : "").toUpperCase();
+        dil = ULKE_DILI[code] || tarayiciDiliBul() || "en";
       } catch (_) {
         dil = tarayiciDiliBul() || "en";
       }
@@ -994,25 +1092,29 @@
     }
 
     async function tiklamaKaydet(id) {
-      if (!id) return;
-      fetch(`${API_BASE}/api/click`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id })
-      }).catch(() => {});
+      const numId = Number(id);
+      if (!Number.isInteger(numId) || numId <= 0) return;
+      try {
+        await apiFetch(`${API_BASE}/api/click`, {
+          method: "POST",
+          body: { id: numId },
+          timeoutMs: 4000
+        });
+      } catch (_) {}
     }
 
     function kartOlustur(item, isSponsor, paket) {
-      const gatewayUrl = `https://dweb.link/ipfs/${encodeURIComponent(item.cid)}`;
+      const cid = String(item.cid || "").trim();
+      const gatewayUrl = `https://dweb.link/ipfs/${encodeURIComponent(cid)}`;
       const div = document.createElement("div");
       div.className = `kart ${isSponsor ? "sponsor" : ""}`;
       div.innerHTML = `
         <span class="etiket">${isSponsor ? paket.sponsoredTag : paket.organicTag}</span>
-        <h3>${escapeHtml(item.title)}</h3>
-        <p>${escapeHtml(item.description)}</p>
+        <h3>${escapeHtml(item.title || "IPFS Record")}</h3>
+        <p>${escapeHtml(item.description || "")}</p>
         <div class="kart-alt">
-          <span>CID: ${escapeHtml(item.cid.slice(0, 22))}...</span>
-          <a href="${gatewayUrl}" target="_blank" rel="noopener noreferrer" onclick="tiklamaKaydet(${item.id})">${paket.openIpfs}</a>
+          <span>CID: ${escapeHtml(cid.slice(0, 24))}${cid.length > 24 ? "..." : ""}</span>
+          <a href="${gatewayUrl}" target="_blank" rel="noopener noreferrer" onclick="tiklamaKaydet(${Number(item.id) || 0})">${paket.openIpfs}</a>
         </div>
       `;
       return div;
@@ -1027,50 +1129,82 @@
     }
 
     async function aramaYap() {
-      const query = document.getElementById("sorgu").value.trim();
+      const inputEl = document.getElementById("sorgu");
       const durum = document.getElementById("durum");
       const sonuclar = document.getElementById("sonuclar");
-      const paket = CEVIRILER[aktifDil] || CEVIRILER.en;
+      const paket = paketAl();
 
+      const query = (inputEl.value || "").trim();
       sonuclar.innerHTML = "";
+
+      if (aktifAramaDenetleyici) {
+        aktifAramaDenetleyici.abort();
+        aktifAramaDenetleyici = null;
+      }
+
       if (!query) {
-        durum.textContent = paket.emptyQuery;
+        durumYaz(durum, paket.emptyQuery, false);
         return;
       }
 
-      durum.textContent = paket.searching;
+      const controller = new AbortController();
+      aktifAramaDenetleyici = controller;
+      durumYaz(durum, paket.searching, false);
 
       try {
-        const res = await fetch(`${API_BASE}/api/resolve`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query, lang: aktifDil })
-        });
-        const data = await res.json();
-        durum.textContent = "";
+        const data = await apiFetch(
+          `${API_BASE}/api/resolve?q=${encodeURIComponent(query)}&lang=${encodeURIComponent(aktifDil)}`,
+          { method: "GET", signal: controller.signal }
+        );
 
-        if (data.sponsored) {
+        if (controller.signal.aborted) return;
+
+        const hasSponsored = Boolean(data && data.sponsored);
+        const organicList = Array.isArray(data && data.organic) ? data.organic : [];
+
+        if (hasSponsored) {
           sonuclar.appendChild(kartOlustur(data.sponsored, true, paket));
         }
-        if (Array.isArray(data.organic) && data.organic.length > 0) {
-          data.organic.forEach(item => sonuclar.appendChild(kartOlustur(item, false, paket)));
+
+        if (organicList.length > 0) {
+          organicList.forEach((item) => {
+            sonuclar.appendChild(kartOlustur(item, false, paket));
+          });
         }
-        if (!data.sponsored && (!data.organic || data.organic.length === 0)) {
-          durum.textContent = paket.noResults;
+
+        if (!hasSponsored && organicList.length === 0) {
+          durumYaz(durum, paket.noResults, false);
+        } else {
+          durumYaz(durum, "", false);
         }
-      } catch (e) {
-        durum.textContent = paket.noResults;
+      } catch (err) {
+        if (err && err.name === "AbortError") return;
+        durumYaz(durum, paket.networkError, true);
+      } finally {
+        if (aktifAramaDenetleyici === controller) {
+          aktifAramaDenetleyici = null;
+        }
       }
     }
 
-    function modalAc(id) { document.getElementById(id).classList.add("acik"); }
+    function modalAc(id) {
+      if (id === "submitModal") {
+        durumYaz(document.getElementById("subDurum"), "", false);
+      }
+      document.getElementById(id).classList.add("acik");
+    }
+
     function modalKapat(id) { document.getElementById(id).classList.remove("acik"); }
     function modalKapatDis(e, id) { if (e.target.id === id) modalKapat(id); }
 
-    function kopyala(elId, btn) {
+    async function kopyala(elId, btn) {
       const txt = document.getElementById(elId).textContent;
-      const paket = CEVIRILER[aktifDil] || CEVIRILER.en;
-      navigator.clipboard?.writeText(txt).catch(() => {});
+      const paket = paketAl();
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(txt);
+        }
+      } catch (_) {}
       if (btn) {
         const eski = paket.copyBtn;
         btn.textContent = paket.copiedBtn;
@@ -1078,9 +1212,19 @@
       }
     }
 
+    function basvuruFormunuTemizle() {
+      document.getElementById("subCid").value = "";
+      document.getElementById("subTitle").value = "";
+      document.getElementById("subDesc").value = "";
+      document.getElementById("subTags").value = "";
+      document.getElementById("subContact").value = "";
+    }
+
     async function basvuruGonder() {
-      const paket = CEVIRILER[aktifDil] || CEVIRILER.en;
+      const paket = paketAl();
       const subDurum = document.getElementById("subDurum");
+      const sendBtn = document.getElementById("subSendBtn");
+
       const payload = {
         cid: document.getElementById("subCid").value.trim(),
         title: document.getElementById("subTitle").value.trim(),
@@ -1091,23 +1235,31 @@
       };
 
       if (!payload.cid || !payload.title || !payload.description) {
-        subDurum.textContent = paket.needFields;
+        durumYaz(subDurum, paket.needFields, true);
         return;
       }
 
+      if (sendBtn) {
+        sendBtn.disabled = true;
+        sendBtn.textContent = paket.sendingBtn;
+      }
+      durumYaz(subDurum, "", false);
+
       try {
-        const res = await fetch(`${API_BASE}/api/submit`, {
+        await apiFetch(`${API_BASE}/api/submit`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
+          body: payload
         });
-        if (res.ok) {
-          subDurum.textContent = paket.sentOk;
-        } else {
-          subDurum.textContent = "Error";
+        basvuruFormunuTemizle();
+        durumYaz(subDurum, paket.sentOk, false);
+      } catch (err) {
+        const msg = (err && err.status === 400 && err.message) ? err.message : paket.submitError;
+        durumYaz(subDurum, msg, true);
+      } finally {
+        if (sendBtn) {
+          sendBtn.disabled = false;
+          sendBtn.textContent = paket.sendBtn;
         }
-      } catch (_) {
-        subDurum.textContent = "Error";
       }
     }
 
