@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -41,27 +41,25 @@
       background: rgba(0,210,255,0.14);
       border: 1px solid rgba(0,210,255,0.35);
       color: #00d2ff;
-      padding: 6px 14px;
+      padding: 7px 14px;
       border-radius: 8px;
       font-size: 0.85rem;
       cursor: pointer;
       font-weight: 600;
     }
-    .dil-bar { display: flex; gap: 6px; }
-    .dil-btn {
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.2);
-      color: #ccc;
-      padding: 5px 11px;
+    .dil-secici {
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.22);
+      color: #fff;
+      padding: 6px 12px;
       border-radius: 8px;
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       cursor: pointer;
+      outline: none;
     }
-    .dil-btn.aktif {
-      background: rgba(0,210,255,0.22);
-      border-color: #00d2ff;
-      color: #00d2ff;
-      font-weight: 600;
+    .dil-secici option {
+      background: #181536;
+      color: #fff;
     }
     header { text-align: center; margin: 26px 0 18px; }
     h1 {
@@ -102,15 +100,23 @@
     }
     .arama-alani input { flex: 1; }
     .arama-alani input:focus, .modal-kutu input:focus, .modal-kutu textarea:focus { border-color: #00d2ff; }
-    .arama-alani button, .birincil-btn {
-      padding: 12px 22px;
+    .arama-alani button, .birincil-btn, .ikincil-btn {
+      padding: 12px 20px;
       border-radius: 10px;
       border: none;
-      background: linear-gradient(90deg, #00d2ff, #3a7bd5);
-      color: #fff;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       font-weight: 600;
       cursor: pointer;
+    }
+    .arama-alani button, .birincil-btn {
+      background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+      color: #fff;
+    }
+    .ikincil-btn {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #ddd;
+      padding: 8px 14px;
     }
     .ornek-sorgular {
       display: flex;
@@ -241,6 +247,8 @@
       padding: 24px;
       max-width: 520px;
       width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
       display: flex;
       flex-direction: column;
       gap: 12px;
@@ -295,11 +303,24 @@
 
   <div class="ust-bar">
     <button class="aksiyon-btn" onclick="modalAc('submitModal')" data-i18n="addContentBtn">+ Add Content / Sponsor</button>
-    <div class="dil-bar">
-      <button class="dil-btn" data-lang="tr" onclick="dilDegistir('tr')">TR</button>
-      <button class="dil-btn" data-lang="en" onclick="dilDegistir('en')">EN</button>
-      <button class="dil-btn" data-lang="de" onclick="dilDegistir('de')">DE</button>
-    </div>
+    <select id="dilSecici" class="dil-secici" aria-label="Language" onchange="dilDegistir(this.value)">
+      <option value="en">English (EN)</option>
+      <option value="zh">中文 (ZH)</option>
+      <option value="hi">हिन्दी (HI)</option>
+      <option value="es">Español (ES)</option>
+      <option value="ar">العربية (AR)</option>
+      <option value="fr">Français (FR)</option>
+      <option value="bn">বাংলা (BN)</option>
+      <option value="pt">Português (PT)</option>
+      <option value="ru">Русский (RU)</option>
+      <option value="ur">اردو (UR)</option>
+      <option value="id">Bahasa Indonesia (ID)</option>
+      <option value="tr">Türkçe (TR)</option>
+      <option value="de">Deutsch (DE)</option>
+      <option value="ja">日本語 (JA)</option>
+      <option value="ht">Kreyòl Ayisyen (HT)</option>
+      <option value="th">ไทย (TH)</option>
+    </select>
   </div>
 
   <header>
@@ -365,8 +386,8 @@
       </select>
       <input type="text" id="subContact" data-i18n-attr="placeholder:subContactPh" placeholder="Contact / Wallet Tx (optional)">
       <div style="display:flex; gap:10px; justify-content:flex-end;">
-        <button class="dil-btn" onclick="modalKapat('submitModal')" data-i18n="closeBtn">Close</button>
-        <button class="birincil-btn" onclick="basvuruGonder()" data-i18n="sendBtn">Send</button>
+        <button type="button" class="ikincil-btn" onclick="modalKapat('submitModal')" data-i18n="closeBtn">Close</button>
+        <button type="button" class="birincil-btn" onclick="basvuruGonder()" data-i18n="sendBtn">Send</button>
       </div>
       <p id="subDurum" class="durum"></p>
     </div>
@@ -391,7 +412,7 @@
             <span class="cuzdan-adres" id="w_btc">bc1q0w6fzuklmtmc0jkjt3e49s5sz58lq38kk4vle3</span>
           </div>
         </div>
-        <button class="dil-btn" onclick="kopyala('w_btc', this)" data-i18n="copyBtn">Copy</button>
+        <button type="button" class="ikincil-btn" onclick="kopyala('w_btc', this)" data-i18n="copyBtn">Copy</button>
       </div>
 
       <!-- ETH -->
@@ -408,7 +429,7 @@
             <span class="cuzdan-adres" id="w_eth">0x47A85F0B4AE86cF130e0393c41fcb20E418723B9</span>
           </div>
         </div>
-        <button class="dil-btn" onclick="kopyala('w_eth', this)" data-i18n="copyBtn">Copy</button>
+        <button type="button" class="ikincil-btn" onclick="kopyala('w_eth', this)" data-i18n="copyBtn">Copy</button>
       </div>
 
       <!-- BNB -->
@@ -428,7 +449,7 @@
             <span class="cuzdan-adres" id="w_bnb">0x47A85F0B4AE86cF130e0393c41fcb20E418723B9</span>
           </div>
         </div>
-        <button class="dil-btn" onclick="kopyala('w_bnb', this)" data-i18n="copyBtn">Copy</button>
+        <button type="button" class="ikincil-btn" onclick="kopyala('w_bnb', this)" data-i18n="copyBtn">Copy</button>
       </div>
 
       <!-- TRON -->
@@ -445,11 +466,11 @@
             <span class="cuzdan-adres" id="w_trx">TSGd49CKWeyoGt9nh62DBCZuGXHAiHo1if</span>
           </div>
         </div>
-        <button class="dil-btn" onclick="kopyala('w_trx', this)" data-i18n="copyBtn">Copy</button>
+        <button type="button" class="ikincil-btn" onclick="kopyala('w_trx', this)" data-i18n="copyBtn">Copy</button>
       </div>
 
       <div style="display:flex; justify-content:flex-end;">
-        <button class="dil-btn" onclick="modalKapat('cryptoModal')" data-i18n="closeBtn">Close</button>
+        <button type="button" class="ikincil-btn" onclick="modalKapat('cryptoModal')" data-i18n="closeBtn">Close</button>
       </div>
     </div>
   </div>
@@ -469,31 +490,291 @@
         searchPlaceholder: "e.g., Best coffee guide in Istanbul",
         resolveBtn: "Resolve",
         tryLabel: "Try:",
-        chip1: "IPFS Starter Guide",
-        chip2: "Open Source Tools",
-        chip3: "Coffee Guide",
-        chip4: "Decentralized Web",
-        emptyQuery: "Please type something.",
-        searching: "🤖 Resolving query...",
-        noResults: "No matching IPFS content found.",
-        sponsoredTag: "SPONSORED",
-        organicTag: "IPFS MATCH",
-        openIpfs: "Open on IPFS →",
+        chip1: "IPFS Starter Guide", chip2: "Open Source Tools", chip3: "Coffee Guide", chip4: "Decentralized Web",
+        emptyQuery: "Please type something.", searching: "🤖 Resolving query...", noResults: "No matching IPFS content found.",
+        sponsoredTag: "SPONSORED", organicTag: "IPFS MATCH", openIpfs: "Open on IPFS →",
         howTitle: "⚙️ How It Works?",
         step1: "Write in natural language", step2: "AI matches intent & directory", step3: "Open persistent IPFS content",
         aboutTitle: "🌐 What is AskWeb?",
         aboutDesc: "AskWeb is an AI-powered decentralized search and IPFS name resolver. Instead of memorizing complex CID hashes or relying on traditional .com domains, users can find guides, open-source utilities, and permanent web pages hosted on IPFS using plain natural language.",
-        addContentBtn: "+ Add Content / Sponsor",
-        cryptoBtn: "💎 Crypto Support",
+        addContentBtn: "+ Add Content / Sponsor", cryptoBtn: "💎 Crypto Support",
         footer: "AskWeb — AI-Powered IPFS Name Resolver",
         submitTitle: "Submit IPFS Content / Sponsor",
         subTitlePh: "Content Title", subDescPh: "Short description", subTagsPh: "Tags (comma separated)",
         planListing: "Directory Listing (Paid / Pinning)", planSponsored: "Sponsored Placement",
         subContactPh: "Contact / Wallet Tx (optional)",
-        copyBtn: "Copy", copiedBtn: "Copied",
-        closeBtn: "Close", sendBtn: "Send",
-        needFields: "CID, title and description are required.",
-        sentOk: "Submitted for review."
+        copyBtn: "Copy", copiedBtn: "Copied", closeBtn: "Close", sendBtn: "Send",
+        needFields: "CID, title and description are required.", sentOk: "Submitted for review."
+      },
+      zh: {
+        ogLocale: "zh_CN",
+        title: "AskWeb | AI 驱动的 IPFS 名称解析器",
+        metaDesc: "无需购买域名即可用自然语言搜索，通过 AI 名称解析器访问 IPFS 上的永久内容。",
+        ogDesc: "使用 AI 进行自然语言搜索，无需域名即可访问 IPFS 上的永久内容。",
+        subtitle: "通过 AI 驱动的名称解析器用自然语言搜索，并访问 IPFS 上的永久内容。",
+        badge1: "无需 .com", badge2: "匿名", badge3: "AI 驱动", badge4: "IPFS 永久",
+        searchTitle: "🔍 你想查找什么？",
+        searchPlaceholder: "例如：伊斯坦布尔最佳咖啡指南",
+        resolveBtn: "解析",
+        tryLabel: "试试：",
+        chip1: "IPFS 入门指南", chip2: "开源工具", chip3: "咖啡指南", chip4: "去中心化网络",
+        emptyQuery: "请输入内容。", searching: "🤖 正在解析查询...", noResults: "未找到匹配的 IPFS 内容。",
+        sponsoredTag: "赞助", organicTag: "IPFS 匹配", openIpfs: "在 IPFS 中打开 →",
+        howTitle: "⚙️ 工作原理",
+        step1: "用自然语言输入", step2: "AI 匹配意图与目录", step3: "打开 IPFS 永久内容",
+        aboutTitle: "🌐 什么是 AskWeb？",
+        aboutDesc: "AskWeb 是一款由 AI 驱动的去中心化搜索与 IPFS 名称解析器。无需记住复杂的 CID 哈希或依赖传统 .com 域名，用户即可通过自然语言查找指南、开源工具和托管在 IPFS 上的永久网页。",
+        addContentBtn: "+ 添加内容 / 赞助", cryptoBtn: "💎 加密货币支持",
+        footer: "AskWeb — AI 驱动的 IPFS 名称解析器",
+        submitTitle: "提交 IPFS 内容 / 赞助",
+        subTitlePh: "内容标题", subDescPh: "简短描述", subTagsPh: "标签（逗号分隔）",
+        planListing: "目录收录 / 固定存储", planSponsored: "赞助位展示",
+        subContactPh: "联系方式 / 交易哈希（可选）",
+        copyBtn: "复制", copiedBtn: "已复制", closeBtn: "关闭", sendBtn: "发送",
+        needFields: "CID、标题和描述为必填项。", sentOk: "已提交审核。"
+      },
+      hi: {
+        ogLocale: "hi_IN",
+        title: "AskWeb | AI-संचालित IPFS नेम रिज़ॉल्वर",
+        metaDesc: "बिना डोमेन खरीदे प्राकृतिक भाषा में खोजें और AI नेम रिज़ॉल्वर से IPFS पर स्थायी सामग्री पाएं।",
+        ogDesc: "AI के साथ प्राकृतिक भाषा में खोजें और बिना डोमेन के IPFS पर स्थायी सामग्री खोलें।",
+        subtitle: "AI-संचालित नेम रिज़ॉल्वर से प्राकृतिक भाषा में खोजें और IPFS पर स्थायी सामग्री पाएं।",
+        badge1: ".com की ज़रूरत नहीं", badge2: "गुमनाम", badge3: "AI-संचालित", badge4: "IPFS स्थायी",
+        searchTitle: "🔍 आप क्या खोज रहे हैं?",
+        searchPlaceholder: "उदा.: इस्तांबुल में सबसे अच्छी कॉफ़ी गाइड",
+        resolveBtn: "खोजें",
+        tryLabel: "आज़माएं:",
+        chip1: "IPFS शुरुआती गाइड", chip2: "ओपन सोर्स टूल्स", chip3: "कॉफ़ी गाइड", chip4: "विकेंद्रीकृत वेब",
+        emptyQuery: "कृपया कुछ लिखें।", searching: "🤖 क्वेरी हल की जा रही है...", noResults: "कोई मेल खाती IPFS सामग्री नहीं मिली।",
+        sponsoredTag: "प्रायोजित", organicTag: "IPFS मिलान", openIpfs: "IPFS पर खोलें →",
+        howTitle: "⚙️ यह कैसे काम करता है?",
+        step1: "सामान्य भाषा में लिखें", step2: "AI उद्देश्य और निर्देशिका मिलाता है", step3: "IPFS पर स्थायी सामग्री खोलें",
+        aboutTitle: "🌐 AskWeb क्या है?",
+        aboutDesc: "AskWeb एक AI-संचालित विकेंद्रीकृत खोज और IPFS नेम रिज़ॉल्वर है। जटिल CID हैश याद रखने या पारंपरिक .com डोमेन पर निर्भर रहने के बजाय, आप सरल भाषा में गाइड, ओपन-सोर्स टूल्स और IPFS पर स्थायी वेब पेज खोज सकते हैं।",
+        addContentBtn: "+ सामग्री जोड़ें / प्रायोजक बनें", cryptoBtn: "💎 क्रिप्टो सहायता",
+        footer: "AskWeb — AI-संचालित IPFS नेम रिज़ॉल्वर",
+        submitTitle: "IPFS सामग्री / प्रायोजन भेजें",
+        subTitlePh: "सामग्री का शीर्षक", subDescPh: "संक्षिप्त विवरण", subTagsPh: "टैग (अल्पविराम से अलग करें)",
+        planListing: "निर्देशिका सूची / पिनिंग", planSponsored: "प्रायोजित स्थान",
+        subContactPh: "संपर्क / Tx हैश (वैकल्पिक)",
+        copyBtn: "कॉपी", copiedBtn: "कॉपी हो गया", closeBtn: "बंद करें", sendBtn: "भेजें",
+        needFields: "CID, शीर्षक और विवरण आवश्यक हैं।", sentOk: "समीक्षा के लिए भेज दिया गया।"
+      },
+      es: {
+        ogLocale: "es_ES",
+        title: "AskWeb | Resolutor de Nombres IPFS con IA",
+        metaDesc: "Busca en lenguaje natural sin comprar un dominio y accede a contenido persistente en IPFS con IA.",
+        ogDesc: "Busca en lenguaje natural con IA y llega a contenido persistente en IPFS sin dominio.",
+        subtitle: "Busca en lenguaje natural con un resolutor de nombres IPFS impulsado por IA y accede a contenido persistente.",
+        badge1: "Sin .com", badge2: "Anónimo", badge3: "Con IA", badge4: "IPFS persistente",
+        searchTitle: "🔍 ¿Qué estás buscando?",
+        searchPlaceholder: "Ej.: Mejor guía de café en Estambul",
+        resolveBtn: "Resolver",
+        tryLabel: "Probar:",
+        chip1: "Guía inicial de IPFS", chip2: "Herramientas Open Source", chip3: "Guía de café", chip4: "Web descentralizada",
+        emptyQuery: "Escribe algo por favor.", searching: "🤖 Resolviendo consulta...", noResults: "No se encontró contenido IPFS coincidente.",
+        sponsoredTag: "PATROCINADO", organicTag: "COINCIDENCIA IPFS", openIpfs: "Abrir en IPFS →",
+        howTitle: "⚙️ ¿Cómo funciona?",
+        step1: "Escribe en lenguaje natural", step2: "La IA vincula intención y directorio", step3: "Abre contenido persistente en IPFS",
+        aboutTitle: "🌐 ¿Qué es AskWeb?",
+        aboutDesc: "AskWeb es un buscador descentralizado y resolutor de nombres IPFS impulsado por IA. En lugar de memorizar hashes CID complejos o depender de dominios .com tradicionales, los usuarios encuentran guías, utilidades abiertas y páginas permanentes en IPFS usando lenguaje natural.",
+        addContentBtn: "+ Añadir contenido / Patrocinar", cryptoBtn: "💎 Apoyo con Cripto",
+        footer: "AskWeb — Resolutor de Nombres IPFS con IA",
+        submitTitle: "Enviar contenido IPFS / Patrocinio",
+        subTitlePh: "Título del contenido", subDescPh: "Descripción corta", subTagsPh: "Etiquetas (separadas por coma)",
+        planListing: "Listado en directorio / Pinning", planSponsored: "Ubicación patrocinada",
+        subContactPh: "Contacto / Tx de pago (opcional)",
+        copyBtn: "Copiar", copiedBtn: "Copiado", closeBtn: "Cerrar", sendBtn: "Enviar",
+        needFields: "CID, título y descripción son obligatorios.", sentOk: "Enviado para revisión."
+      },
+      ar: {
+        ogLocale: "ar_AR",
+        title: "AskWeb | محلل أسماء IPFS بالذكاء الاصطناعي",
+        metaDesc: "ابحث باللغة الطبيعية دون شراء نطاق واصل إلى محتوى دائم على IPFS عبر محلل ذكي.",
+        ogDesc: "ابحث باللغة الطبيعية بالذكاء الاصطناعي واصل إلى محتوى دائم على IPFS دون نطاق.",
+        subtitle: "ابحث باللغة الطبيعية عبر محلل أسماء IPFS المدعوم بالذكاء الاصطناعي واصل إلى محتوى دائم.",
+        badge1: "بلا نطاق .com", badge2: "مجهول الهوية", badge3: "مدعوم بالذكاء الاصطناعي", badge4: "IPFS دائم",
+        searchTitle: "🔍 عما تبحث؟",
+        searchPlaceholder: "مثال: أفضل دليل للقهوة في إسطنبول",
+        resolveBtn: "بحث",
+        tryLabel: "جرّب:",
+        chip1: "دليل البداية مع IPFS", chip2: "أدوات مفتوحة المصدر", chip3: "دليل القهوة", chip4: "الويب اللامركزي",
+        emptyQuery: "يرجى كتابة شيء ما.", searching: "🤖 جارٍ تحليل الطلب...", noResults: "لم يتم العثور على محتوى IPFS مطابق.",
+        sponsoredTag: "برعاية", organicTag: "مطابقة IPFS", openIpfs: "فتح على IPFS ←",
+        howTitle: "⚙️ كيف يعمل؟",
+        step1: "اكتب باللغة الطبيعية", step2: "يطابق الذكاء الاصطناعي القصد والفهرس", step3: "افتح محتوى IPFS الدائم",
+        aboutTitle: "🌐 ما هو AskWeb؟",
+        aboutDesc: "AskWeb هو محرك بحث لامركزي ومحلل أسماء IPFS مدعوم بالذكاء الاصطناعي. بدلاً من حفظ رموز CID المعقدة أو الاعتماد على نطاقات .com التقليدية، يمكنك العثور على الأدلة والأدوات مفتوحة المصدر والصفحات الدائمة على IPFS باللغة الطبيعية.",
+        addContentBtn: "+ إضافة محتوى / رعاية", cryptoBtn: "💎 دعم بالعملات الرقمية",
+        footer: "AskWeb — محلل أسماء IPFS بالذكاء الاصطناعي",
+        submitTitle: "إرسال محتوى IPFS / طلب رعاية",
+        subTitlePh: "عنوان المحتوى", subDescPh: "وصف مختصر", subTagsPh: "الوسوم (مفصولة بفاصلة)",
+        planListing: "إدراج في الفهرس / تثبيت", planSponsored: "إعلان ممول",
+        subContactPh: "وسيلة تواصل / رقم المعاملة Tx (اختياري)",
+        copyBtn: "نسخ", copiedBtn: "تم النسخ", closeBtn: "إغلاق", sendBtn: "إرسال",
+        needFields: "حقول CID والعنوان والوصف مطلوبة.", sentOk: "تم الإرسال للمراجعة."
+      },
+      fr: {
+        ogLocale: "fr_FR",
+        title: "AskWeb | Résolveur de Noms IPFS par IA",
+        metaDesc: "Recherchez en langage naturel sans acheter de domaine et accédez à du contenu persistant sur IPFS avec l'IA.",
+        ogDesc: "Recherchez en langage naturel avec l'IA et accédez à du contenu persistant sur IPFS sans domaine.",
+        subtitle: "Recherchez en langage naturel avec un résolveur de noms IPFS par IA et accédez à du contenu persistant.",
+        badge1: "Sans .com", badge2: "Anonyme", badge3: "Propulsé par IA", badge4: "IPFS persistant",
+        searchTitle: "🔍 Que recherchez-vous ?",
+        searchPlaceholder: "Ex. : Meilleur guide café à Istanbul",
+        resolveBtn: "Résoudre",
+        tryLabel: "Essayer :",
+        chip1: "Guide de démarrage IPFS", chip2: "Outils Open Source", chip3: "Guide Café", chip4: "Web décentralisé",
+        emptyQuery: "Veuillez saisir un texte.", searching: "🤖 Résolution de la requête...", noResults: "Aucun contenu IPFS correspondant trouvé.",
+        sponsoredTag: "SPONSORISÉ", organicTag: "CORRESPONDANCE IPFS", openIpfs: "Ouvrir sur IPFS →",
+        howTitle: "⚙️ Comment ça marche ?",
+        step1: "Écrivez en langage naturel", step2: "L'IA associe intention et annuaire", step3: "Ouvrez le contenu IPFS persistant",
+        aboutTitle: "🌐 Qu'est-ce qu'AskWeb ?",
+        aboutDesc: "AskWeb est un moteur de recherche décentralisé et un résolveur de noms IPFS propulsé par l'IA. Au lieu de mémoriser des hachages CID complexes ou de dépendre de domaines .com classiques, trouvez des guides, outils libres et pages permanentes sur IPFS en langage naturel.",
+        addContentBtn: "+ Ajouter du contenu / Sponsor", cryptoBtn: "💎 Soutien Crypto",
+        footer: "AskWeb — Résolveur de Noms IPFS par IA",
+        submitTitle: "Soumettre un contenu IPFS / Sponsoring",
+        subTitlePh: "Titre du contenu", subDescPh: "Courte description", subTagsPh: "Tags (séparés par des virgules)",
+        planListing: "Inscription annuaire / Pinning", planSponsored: "Placement sponsorisé",
+        subContactPh: "Contact / Tx de paiement (optionnel)",
+        copyBtn: "Copier", copiedBtn: "Copié", closeBtn: "Fermer", sendBtn: "Envoyer",
+        needFields: "Le CID, le titre et la description sont requis.", sentOk: "Soumis pour vérification."
+      },
+      bn: {
+        ogLocale: "bn_BD",
+        title: "AskWeb | AI-চালিত IPFS নেম রিজলভার",
+        metaDesc: "ডোমেইন ছাড়াই স্বাভাবিক ভাষায় খুঁজুন এবং AI রিজলভার দিয়ে IPFS-এ স্থায়ী কন্টেন্টে পৌঁছান।",
+        ogDesc: "AI দিয়ে স্বাভাবিক ভাষায় খুঁজুন এবং ডোমেইন ছাড়াই IPFS-এ স্থায়ী কন্টেন্ট খুলুন।",
+        subtitle: "AI-চালিত IPFS নেম রিজলভার দিয়ে স্বাভাবিক ভাষায় খুঁজুন এবং স্থায়ী কন্টেন্টে পৌঁছান।",
+        badge1: ".com লাগবে না", badge2: "বেনামী", badge3: "AI-চালিত", badge4: "IPFS স্থায়ী",
+        searchTitle: "🔍 আপনি কী খুঁজছেন?",
+        searchPlaceholder: "যেমন: ইস্তাম্বুলের সেরা কফি গাইড",
+        resolveBtn: "খুঁজুন",
+        tryLabel: "চেষ্টা করুন:",
+        chip1: "IPFS শুরু করার গাইড", chip2: "ওপেন সোর্স টুলস", chip3: "কফি গাইড", chip4: "বিকেন্দ্রীকৃত ওয়েব",
+        emptyQuery: "অনুগ্রহ করে কিছু লিখুন।", searching: "🤖 অনুসন্ধান প্রক্রিয়াকরণ হচ্ছে...", noResults: "কোনো মানানসই IPFS কন্টেন্ট পাওয়া যায়নি।",
+        sponsoredTag: "স্পন্সর্ড", organicTag: "IPFS ম্যাচ", openIpfs: "IPFS-এ খুলুন →",
+        howTitle: "⚙️ এটি কীভাবে কাজ করে?",
+        step1: "স্বাভাবিক ভাষায় লিখুন", step2: "AI উদ্দেশ্য ও ডিরেক্টরি মেলায়", step3: "IPFS-এর স্থায়ী কন্টেন্ট খুলুন",
+        aboutTitle: "🌐 AskWeb কী?",
+        aboutDesc: "AskWeb হলো একটি AI-চালিত বিকেন্দ্রীকৃত অনুসন্ধান ও IPFS নেম রিজলভার। জটিল CID হ্যাশ মনে রাখা বা ঐতিহ্যবাহী .com ডোমেইনের বদলে সহজ ভাষায় গাইড, ওপেন-সোর্স টুল ও IPFS-এর স্থায়ী পেজ খুঁজে পাওয়া যায়।",
+        addContentBtn: "+ কন্টেন্ট যোগ / স্পন্সর", cryptoBtn: "💎 ক্রিপ্টো সহায়তা",
+        footer: "AskWeb — AI-চালিত IPFS নেম রিজলভার",
+        submitTitle: "IPFS কন্টেন্ট / স্পন্সরশিপ জমা দিন",
+        subTitlePh: "কন্টেন্টের শিরোনাম", subDescPh: "সংক্ষিপ্ত বিবরণ", subTagsPh: "ট্যাগ (কমা দিয়ে আলাদা করুন)",
+        planListing: "ডিরেক্টরি তালিকা / পিনিং", planSponsored: "স্পন্সর্ড প্লেসমেন্ট",
+        subContactPh: "যোগাযোগ / Tx হ্যাশ (ঐচ্ছিক)",
+        copyBtn: "কপি", copiedBtn: "কপি হয়েছে", closeBtn: "বন্ধ করুন", sendBtn: "পাঠান",
+        needFields: "CID, শিরোনাম এবং বিবরণ আবশ্যক।", sentOk: "পর্যালোচনার জন্য জমা দেওয়া হয়েছে।"
+      },
+      pt: {
+        ogLocale: "pt_PT",
+        title: "AskWeb | Resolvedor de Nomes IPFS com IA",
+        metaDesc: "Pesquise em linguagem natural sem comprar domínio e acesse conteúdo persistente no IPFS com IA.",
+        ogDesc: "Pesquise em linguagem natural com IA e acesse conteúdo persistente no IPFS sem domínio.",
+        subtitle: "Pesquise em linguagem natural com um resolvedor de nomes IPFS com IA e acesse conteúdo persistente.",
+        badge1: "Sem .com", badge2: "Anônimo", badge3: "Com IA", badge4: "IPFS persistente",
+        searchTitle: "🔍 O que você procura?",
+        searchPlaceholder: "Ex.: Melhor guia de café em Istambul",
+        resolveBtn: "Resolver",
+        tryLabel: "Experimente:",
+        chip1: "Guia inicial do IPFS", chip2: "Ferramentas Open Source", chip3: "Guia de café", chip4: "Web descentralizada",
+        emptyQuery: "Digite algo por favor.", searching: "🤖 Resolvendo consulta...", noResults: "Nenhum conteúdo IPFS correspondente encontrado.",
+        sponsoredTag: "PATROCINADO", organicTag: "CORRESPONDÊNCIA IPFS", openIpfs: "Abrir no IPFS →",
+        howTitle: "⚙️ Como funciona?",
+        step1: "Escreva em linguagem natural", step2: "IA combina intenção e diretório", step3: "Abra conteúdo persistente no IPFS",
+        aboutTitle: "🌐 O que é o AskWeb?",
+        aboutDesc: "AskWeb é uma busca descentralizada e resolvedor de nomes IPFS com IA. Em vez de decorar hashes CID complexos ou depender de domínios .com tradicionais, você encontra guias, ferramentas abertas e páginas permanentes no IPFS usando linguagem natural.",
+        addContentBtn: "+ Adicionar conteúdo / Patrocinar", cryptoBtn: "💎 Apoio em Cripto",
+        footer: "AskWeb — Resolvedor de Nomes IPFS com IA",
+        submitTitle: "Enviar conteúdo IPFS / Patrocínio",
+        subTitlePh: "Título do conteúdo", subDescPh: "Descrição curta", subTagsPh: "Tags (separadas por vírgula)",
+        planListing: "Listagem no diretório / Pinning", planSponsored: "Destaque patrocinado",
+        subContactPh: "Contato / Tx de pagamento (opcional)",
+        copyBtn: "Copiar", copiedBtn: "Copiado", closeBtn: "Fechar", sendBtn: "Enviar",
+        needFields: "CID, título e descrição são obrigatórios.", sentOk: "Enviado para análise."
+      },
+      ru: {
+        ogLocale: "ru_RU",
+        title: "AskWeb | ИИ-резолвер имён IPFS",
+        metaDesc: "Ищите на естественном языке без покупки домена и открывайте постоянный контент в IPFS с помощью ИИ.",
+        ogDesc: "Поиск на естественном языке с ИИ и доступ к постоянному контенту в IPFS без домена.",
+        subtitle: "Ищите на естественном языке с помощью ИИ-резолвера и открывайте постоянный контент в IPFS.",
+        badge1: "Без .com", badge2: "Анонимно", badge3: "На базе ИИ", badge4: "Постоянный IPFS",
+        searchTitle: "🔍 Что вы ищете?",
+        searchPlaceholder: "Напр.: Лучший кофейный гид в Стамбуле",
+        resolveBtn: "Найти",
+        tryLabel: "Примеры:",
+        chip1: "Гид по IPFS", chip2: "Open-Source инструменты", chip3: "Гид по кофе", chip4: "Децентрализованный веб",
+        emptyQuery: "Введите запрос.", searching: "🤖 Обработка запроса...", noResults: "Подходящий контент IPFS не найден.",
+        sponsoredTag: "СПОНСОР", organicTag: "СОВПАДЕНИЕ IPFS", openIpfs: "Открыть в IPFS →",
+        howTitle: "⚙️ Как это работает?",
+        step1: "Напишите запрос обычным языком", step2: "ИИ сопоставляет смысл и каталог", step3: "Откройте постоянный контент IPFS",
+        aboutTitle: "🌐 Что такое AskWeb?",
+        aboutDesc: "AskWeb — это децентрализованный поиск и резолвер имён IPFS на базе ИИ. Вместо запоминания сложных CID-хэшей или покупки .com-доменов пользователи находят руководства, утилиты и постоянные страницы в IPFS с помощью обычных запросов.",
+        addContentBtn: "+ Добавить контент / Спонсорство", cryptoBtn: "💎 Поддержка криптой",
+        footer: "AskWeb — ИИ-резолвер имён IPFS",
+        submitTitle: "Отправить контент IPFS / Спонсорство",
+        subTitlePh: "Название контента", subDescPh: "Краткое описание", subTagsPh: "Теги (через запятую)",
+        planListing: "Размещение в каталоге / Пининг", planSponsored: "Спонсорское размещение",
+        subContactPh: "Контакт / Хэш транзакции (необязательно)",
+        copyBtn: "Копировать", copiedBtn: "Скопировано", closeBtn: "Закрыть", sendBtn: "Отправить",
+        needFields: "Укажите CID, название и описание.", sentOk: "Отправлено на проверку."
+      },
+      ur: {
+        ogLocale: "ur_PK",
+        title: "AskWeb | AI سے چلنے والا IPFS نیم ریزولور",
+        metaDesc: "ڈومین خریدے بغیر قدرتی زبان میں تلاش کریں اور AI ریزولور کے ذریعے IPFS پر مستقل مواد تک پہنچیں۔",
+        ogDesc: "AI کے ساتھ قدرتی زبان میں تلاش کریں اور بغیر ڈومین کے IPFS پر مستقل مواد کھولیں۔",
+        subtitle: "AI سے چلنے والے IPFS نیم ریزولور کے ذریعے قدرتی زبان میں تلاش کریں اور مستقل مواد تک پہنچیں۔",
+        badge1: ".com کی ضرورت نہیں", badge2: "گمنام", badge3: "AI پر مبنی", badge4: "IPFS مستقل",
+        searchTitle: "🔍 آپ کیا تلاش کر رہے ہیں؟",
+        searchPlaceholder: "مثال: استنبول میں بہترین کافی گائیڈ",
+        resolveBtn: "تلاش کریں",
+        tryLabel: "آزمائیں:",
+        chip1: "IPFS ابتدائی گائیڈ", chip2: "اوپن سورس ٹولز", chip3: "کافی گائیڈ", chip4: "لامرکز ویب",
+        emptyQuery: "براہ کرم کچھ لکھیں۔", searching: "🤖 تلاش پر عمل جاری ہے...", noResults: "کوئی مماثل IPFS مواد نہیں ملا۔",
+        sponsoredTag: "سپانسرڈ", organicTag: "IPFS مماثلت", openIpfs: "IPFS پر کھولیں ←",
+        howTitle: "⚙️ یہ کیسے کام کرتا ہے؟",
+        step1: "قدرتی زبان میں لکھیں", step2: "AI مقصد اور ڈائریکٹری ملاتا ہے", step3: "IPFS کا مستقل مواد کھولیں",
+        aboutTitle: "🌐 AskWeb کیا ہے؟",
+        aboutDesc: "AskWeb ایک AI سے چلنے والا لارکز سرچ انجن اور IPFS نیم ریزولور ہے۔ پیچیدہ CID ہیشز یاد رکھنے یا روایتی .com ڈومینز پر انحصار کرنے کے بجائے، صارفین سادہ زبان میں گائیڈز، اوپن سورس ٹولز اور IPFS پر مستقل صفحات تلاش کر سکتے ہیں۔",
+        addContentBtn: "+ مواد شامل کریں / سپانسر", cryptoBtn: "💎 کرپٹو معاونت",
+        footer: "AskWeb — AI سے چلنے والا IPFS نیم ریزولور",
+        submitTitle: "IPFS مواد / سپانسرشپ جمع کرائیں",
+        subTitlePh: "مواد کا عنوان", subDescPh: "مختصر تفصیل", subTagsPh: "ٹیگز (کوما سے الگ کریں)",
+        planListing: "ڈائریکٹری لسٹنگ / پننگ", planSponsored: "سپانسرڈ جگہ",
+        subContactPh: "رابطہ / Tx ہیش (اختیاری)",
+        copyBtn: "کاپی", copiedBtn: "کاپی ہو گیا", closeBtn: "بند کریں", sendBtn: "بھیجیں",
+        needFields: "CID، عنوان اور تفصیل درکار ہیں۔", sentOk: "جائزے کے لیے بھیج دیا گیا۔"
+      },
+      id: {
+        ogLocale: "id_ID",
+        title: "AskWeb | Resolver Nama IPFS Berbasis AI",
+        metaDesc: "Cari dalam bahasa alami tanpa membeli domain dan akses konten persisten di IPFS dengan AI.",
+        ogDesc: "Cari dalam bahasa alami dengan AI dan buka konten persisten di IPFS tanpa domain.",
+        subtitle: "Cari dalam bahasa alami dengan resolver nama IPFS berbasis AI dan akses konten persisten.",
+        badge1: "Tanpa .com", badge2: "Anonim", badge3: "Berbasis AI", badge4: "IPFS persisten",
+        searchTitle: "🔍 Apa yang sedang kamu cari?",
+        searchPlaceholder: "Mis.: Panduan kopi terbaik di Istanbul",
+        resolveBtn: "Cari",
+        tryLabel: "Coba:",
+        chip1: "Panduan Awal IPFS", chip2: "Alat Open Source", chip3: "Panduan Kopi", chip4: "Web Terdesentralisasi",
+        emptyQuery: "Silakan ketik sesuatu.", searching: "🤖 Memproses kueri...", noResults: "Tidak ditemukan konten IPFS yang cocok.",
+        sponsoredTag: "SPONSOR", organicTag: "COCOK IPFS", openIpfs: "Buka di IPFS →",
+        howTitle: "⚙️ Bagaimana Cara Kerjanya?",
+        step1: "Tulis dalam bahasa alami", step2: "AI mencocokkan maksud & direktori", step3: "Buka konten IPFS persisten",
+        aboutTitle: "🌐 Apa itu AskWeb?",
+        aboutDesc: "AskWeb adalah mesin pencari terdesentralisasi dan resolver nama IPFS berbasis AI. Alih-alih menghafal hash CID yang rumit atau bergantung pada domain .com tradisional, pengguna dapat menemukan panduan, utilitas terbuka, dan halaman permanen di IPFS menggunakan bahasa alami.",
+        addContentBtn: "+ Tambah Konten / Sponsor", cryptoBtn: "💎 Dukungan Kripto",
+        footer: "AskWeb — Resolver Nama IPFS Berbasis AI",
+        submitTitle: "Kirim Konten IPFS / Sponsor",
+        subTitlePh: "Judul Konten", subDescPh: "Deskripsi singkat", subTagsPh: "Tag (pisahkan dengan koma)",
+        planListing: "Daftar Direktori / Pinning", planSponsored: "Penempatan Bersponsor",
+        subContactPh: "Kontak / Hash Tx (opsional)",
+        copyBtn: "Salin", copiedBtn: "Tersalin", closeBtn: "Tutup", sendBtn: "Kirim",
+        needFields: "CID, judul, dan deskripsi wajib diisi.", sentOk: "Dikirim untuk ditinjau."
       },
       tr: {
         ogLocale: "tr_TR",
@@ -506,31 +787,21 @@
         searchPlaceholder: "Örn: İstanbul'daki en iyi kahve rehberi",
         resolveBtn: "Çözümle",
         tryLabel: "Örnek:",
-        chip1: "IPFS Başlangıç Rehberi",
-        chip2: "Açık Kaynak Araçlar",
-        chip3: "Kahve Rehberi",
-        chip4: "Merkeziyetsiz Web",
-        emptyQuery: "Lütfen bir şey yazın.",
-        searching: "🤖 Sorgu çözümleniyor...",
-        noResults: "Eşleşen IPFS içeriği bulunamadı.",
-        sponsoredTag: "SPONSORLU",
-        organicTag: "IPFS EŞLEŞME",
-        openIpfs: "IPFS'te Aç →",
+        chip1: "IPFS Başlangıç Rehberi", chip2: "Açık Kaynak Araçlar", chip3: "Kahve Rehberi", chip4: "Merkeziyetsiz Web",
+        emptyQuery: "Lütfen bir şey yazın.", searching: "🤖 Sorgu çözümleniyor...", noResults: "Eşleşen IPFS içeriği bulunamadı.",
+        sponsoredTag: "SPONSORLU", organicTag: "IPFS EŞLEŞME", openIpfs: "IPFS'te Aç →",
         howTitle: "⚙️ Nasıl Çalışır?",
         step1: "Doğal dilde yaz", step2: "AI niyeti ve dizini eşleştirir", step3: "Kalıcı IPFS içeriğini aç",
         aboutTitle: "🌐 AskWeb Nedir?",
         aboutDesc: "AskWeb, yapay zekâ destekli merkeziyetsiz bir arama ve IPFS isim çözümleyicisidir. Karmaşık CID adreslerini ezberlemeye veya klasik .com alan adlarına ihtiyaç duymadan; IPFS üzerinde barındırılan rehberlere, açık kaynak araçlara ve kalıcı web sayfalarına doğal dilde arama yaparak ulaşmanızı sağlar.",
-        addContentBtn: "+ İçerik Ekle / Sponsor Ol",
-        cryptoBtn: "💎 Kripto Destek",
+        addContentBtn: "+ İçerik Ekle / Sponsor Ol", cryptoBtn: "💎 Kripto Destek",
         footer: "AskWeb — AI Destekli IPFS İsim Çözümleyici",
         submitTitle: "IPFS İçeriği / Sponsorluk Başvurusu",
         subTitlePh: "İçerik Başlığı", subDescPh: "Kısa açıklama", subTagsPh: "Etiketler (virgülle ayırın)",
         planListing: "Ücretli Dizin Kaydı / Pinning", planSponsored: "Sponsorlu Öne Çıkarma",
         subContactPh: "İletişim / Ödeme Tx (opsiyonel)",
-        copyBtn: "Kopyala", copiedBtn: "Kopyalandı",
-        closeBtn: "Kapat", sendBtn: "Gönder",
-        needFields: "CID, başlık ve açıklama zorunludur.",
-        sentOk: "Başvurunuz inceleme için alındı."
+        copyBtn: "Kopyala", copiedBtn: "Kopyalandı", closeBtn: "Kapat", sendBtn: "Gönder",
+        needFields: "CID, başlık ve açıklama zorunludur.", sentOk: "Başvurunuz inceleme için alındı."
       },
       de: {
         ogLocale: "de_DE",
@@ -543,36 +814,121 @@
         searchPlaceholder: "z. B. Bester Kaffeeführer in Istanbul",
         resolveBtn: "Auflösen",
         tryLabel: "Beispiele:",
-        chip1: "IPFS Einsteiger-Guide",
-        chip2: "Open-Source-Tools",
-        chip3: "Kaffeeführer",
-        chip4: "Dezentrales Web",
-        emptyQuery: "Bitte gib etwas ein.",
-        searching: "🤖 Anfrage wird aufgelöst...",
-        noResults: "Keine passenden IPFS-Inhalte gefunden.",
-        sponsoredTag: "GESPONSERT",
-        organicTag: "IPFS-TREFFER",
-        openIpfs: "Auf IPFS öffnen →",
+        chip1: "IPFS Einsteiger-Guide", chip2: "Open-Source-Tools", chip3: "Kaffeeführer", chip4: "Dezentrales Web",
+        emptyQuery: "Bitte gib etwas ein.", searching: "🤖 Anfrage wird aufgelöst...", noResults: "Keine passenden IPFS-Inhalte gefunden.",
+        sponsoredTag: "GESPONSERT", organicTag: "IPFS-TREFFER", openIpfs: "Auf IPFS öffnen →",
         howTitle: "⚙️ Wie funktioniert es?",
         step1: "In natürlicher Sprache schreiben", step2: "KI gleicht Absicht & Verzeichnis ab", step3: "Dauerhaften IPFS-Inhalt öffnen",
         aboutTitle: "🌐 Was ist AskWeb?",
         aboutDesc: "AskWeb ist eine KI-gestützte dezentrale Suchmaschine und ein IPFS-Namensauflöser. Anstatt komplexe CID-Hashes zu merken oder herkömmliche .com-Domains zu nutzen, finden Nutzer Leitfäden, Open-Source-Tools und dauerhafte Webseiten auf IPFS in natürlicher Sprache.",
-        addContentBtn: "+ Inhalt hinzufügen / Sponsor",
-        cryptoBtn: "💎 Krypto-Unterstützung",
+        addContentBtn: "+ Inhalt hinzufügen / Sponsor", cryptoBtn: "💎 Krypto-Unterstützung",
         footer: "AskWeb — KI-gestützter IPFS Namensauflöser",
         submitTitle: "IPFS-Inhalt / Sponsoring einreichen",
         subTitlePh: "Titel des Inhalts", subDescPh: "Kurzbeschreibung", subTagsPh: "Tags (durch Komma getrennt)",
         planListing: "Verzeichniseintrag / Pinning", planSponsored: "Gesponserte Platzierung",
         subContactPh: "Kontakt / Transaktions-Hash (optional)",
-        copyBtn: "Kopieren", copiedBtn: "Kopiert",
-        closeBtn: "Schließen", sendBtn: "Senden",
-        needFields: "CID, Titel und Beschreibung sind erforderlich.",
-        sentOk: "Zur Prüfung eingereicht."
+        copyBtn: "Kopieren", copiedBtn: "Kopiert", closeBtn: "Schließen", sendBtn: "Senden",
+        needFields: "CID, Titel und Beschreibung sind erforderlich.", sentOk: "Zur Prüfung eingereicht."
+      },
+      ja: {
+        ogLocale: "ja_JP",
+        title: "AskWeb | AI搭載IPFSネームリゾルバ",
+        metaDesc: "独自ドメインなしで自然言語検索し、AIネームリゾルバでIPFS上の永続コンテンツにアクセス。",
+        ogDesc: "AIによる自然言語検索でドメイン不要のままIPFS上の永続コンテンツへアクセス。",
+        subtitle: "AI搭載ネームリゾルバで自然言語検索し、IPFS上の永続コンテンツにアクセスしましょう。",
+        badge1: ".com不要", badge2: "匿名", badge3: "AI搭載", badge4: "IPFS永続",
+        searchTitle: "🔍 何を探していますか？",
+        searchPlaceholder: "例：イスタンブールのおすすめコーヒーガイド",
+        resolveBtn: "検索",
+        tryLabel: "例：",
+        chip1: "IPFS入門ガイド", chip2: "オープンソースツール", chip3: "コーヒーガイド", chip4: "分散型Web",
+        emptyQuery: "何か入力してください。", searching: "🤖 クエリを解決中...", noResults: "一致するIPFSコンテンツが見つかりません。",
+        sponsoredTag: "スポンサー", organicTag: "IPFS一致", openIpfs: "IPFSで開く →",
+        howTitle: "⚙️ 仕組み",
+        step1: "自然言語で入力", step2: "AIが意図とディレクトリを照合", step3: "永続的なIPFSコンテンツを開く",
+        aboutTitle: "🌐 AskWebとは？",
+        aboutDesc: "AskWebはAIを活用した分散型検索およびIPFSネームリゾルバです。複雑なCIDハッシュや従来の.comドメインに頼ることなく、自然言語でガイドやオープンソースツール、IPFS上の永続ページを見つけられます。",
+        addContentBtn: "+ コンテンツ追加 / スポンサー", cryptoBtn: "💎 暗号資産サポート",
+        footer: "AskWeb — AI搭載IPFSネームリゾルバ",
+        submitTitle: "IPFSコンテンツ / スポンサー申請",
+        subTitlePh: "コンテンツタイトル", subDescPh: "簡単な説明", subTagsPh: "タグ（カンマ区切り）",
+        planListing: "ディレクトリ掲載 / ピニング", planSponsored: "スポンサー掲載",
+        subContactPh: "連絡先 / 送金Tx（任意）",
+        copyBtn: "コピー", copiedBtn: "コピー済", closeBtn: "閉じる", sendBtn: "送信",
+        needFields: "CID、タイトル、説明は必須です。", sentOk: "審査用に送信されました。"
+      },
+      ht: {
+        ogLocale: "ht_HT",
+        title: "AskWeb | Rezolvè Non IPFS Avèk IA",
+        metaDesc: "Chèche nan lang natirèl san achte domèn epi jwenn kontni pèmanan sou IPFS ak IA.",
+        ogDesc: "Chèche ak IA nan lang natirèl epi louvri kontni pèmanan sou IPFS san bezwen domèn.",
+        subtitle: "Chèche nan lang natirèl ak yon rezolvè non IPFS ki mache ak IA epi jwenn kontni pèmanan.",
+        badge1: "Pa bezwen .com", badge2: "Anonim", badge3: "Mache ak IA", badge4: "IPFS pèmanan",
+        searchTitle: "🔍 Kisa w ap chèche?",
+        searchPlaceholder: "Egz.: Pi bon gid kafe nan Istanbul",
+        resolveBtn: "Rezoud",
+        tryLabel: "Eseye:",
+        chip1: "Gid Debutant IPFS", chip2: "Zouti Open Source", chip3: "Gid Kafe", chip4: "Entènèt Desantralize",
+        emptyQuery: "Tanpri ekri yon bagay.", searching: "🤖 Ap rezoud rechèch la...", noResults: "Pa gen kontni IPFS ki koresponn.",
+        sponsoredTag: "SPONSÈ", organicTag: "KORESPONDANS IPFS", openIpfs: "Louvri sou IPFS →",
+        howTitle: "⚙️ Kijan li mache?",
+        step1: "Ekri nan lang natirèl", step2: "IA asosye entansyon ak katalòg la", step3: "Louvri kontni IPFS pèmanan an",
+        aboutTitle: "🌐 Kisa AskWeb ye?",
+        aboutDesc: "AskWeb se yon motè rechèch desantralize ak rezolvè non IPFS ki mache ak IA. Olye ou kenbe kòd CID konplike nan tèt oswa achte non domèn .com, ou ka jwenn gid, zouti ak paj pèmanan sou IPFS lè w ekri tou senpleman.",
+        addContentBtn: "+ Ajoute Kontni / Sponsorize", cryptoBtn: "💎 Sipò Kripto",
+        footer: "AskWeb — Rezolvè Non IPFS Avèk IA",
+        submitTitle: "Soumèt Kontni IPFS / Sponsoring",
+        subTitlePh: "Tit Kontni an", subDescPh: "Ti deskripsyon", subTagsPh: "Etikèt (separe ak vigil)",
+        planListing: "Enskripsyon Katalòg / Pinning", planSponsored: "Plasman Sponsò",
+        subContactPh: "Kontak / Tx Tranzaksyon (opsyonèl)",
+        copyBtn: "Kopye", copiedBtn: "Kopye!", closeBtn: "Fèmen", sendBtn: "Voye",
+        needFields: "CID, tit ak deskripsyon obligatwa.", sentOk: "Voye pou revizyon."
+      },
+      th: {
+        ogLocale: "th_TH",
+        title: "AskWeb | ตัวระบุชื่อ IPFS พลัง AI",
+        metaDesc: "ค้นหาด้วยภาษาธรรมชาติโดยไม่ต้องซื้อโดเมน และเข้าถึงเนื้อหาถาวรบน IPFS ด้วย AI",
+        ogDesc: "ค้นหาด้วยภาษาธรรมชาติผ่าน AI และเปิดเนื้อหาถาวรบน IPFS โดยไม่ต้องใช้โดเมน",
+        subtitle: "ค้นหาด้วยภาษาธรรมชาติผ่านตัวระบุชื่อ IPFS พลัง AI และเข้าถึงเนื้อหาถาวรบน IPFS",
+        badge1: "ไม่ต้องใช้ .com", badge2: "ไม่ระบุตัวตน", badge3: "พลัง AI", badge4: "IPFS ถาวร",
+        searchTitle: "🔍 คุณกำลังมองหาอะไร?",
+        searchPlaceholder: "เช่น คู่มือกาแฟที่ดีที่สุดในอิสตันบูล",
+        resolveBtn: "ค้นหา",
+        tryLabel: "ลอง:",
+        chip1: "คู่มือเริ่มต้น IPFS", chip2: "เครื่องมือโอเพนซอร์ส", chip3: "คู่มือกาแฟ", chip4: "เว็บแบบกระจายศูนย์",
+        emptyQuery: "กรุณาพิมพ์ข้อความ", searching: "🤖 กำลังประมวลผลคำค้นหา...", noResults: "ไม่พบเนื้อหา IPFS ที่ตรงกัน",
+        sponsoredTag: "ผู้สนับสนุน", organicTag: "ตรงกับ IPFS", openIpfs: "เปิดบน IPFS →",
+        howTitle: "⚙️ ทำงานอย่างไร?",
+        step1: "พิมพ์ด้วยภาษาธรรมชาติ", step2: "AI จับคู่ความตั้งใจกับสารบัญ", step3: "เปิดเนื้อหาถาวรบน IPFS",
+        aboutTitle: "🌐 AskWeb คืออะไร?",
+        aboutDesc: "AskWeb คือเครื่องมือค้นหาแบบกระจายศูนย์และตัวระบุชื่อ IPFS พลัง AI แทนที่จะจำแฮช CID ที่ซับซ้อนหรือพึ่งพาโดเมน .com แบบเดิม คุณสามารถค้นหาคู่มือ เครื่องมือโอเพนซอร์ส และหน้าเว็บถาวรบน IPFS ได้ด้วยภาษาธรรมชาติ",
+        addContentBtn: "+ เพิ่มเนื้อหา / สปอนเซอร์", cryptoBtn: "💎 สนับสนุนด้วยคริปโต",
+        footer: "AskWeb — ตัวระบุชื่อ IPFS พลัง AI",
+        submitTitle: "ส่งเนื้อหา IPFS / สปอนเซอร์",
+        subTitlePh: "ชื่อเนื้อหา", subDescPh: "คำอธิบายสั้นๆ", subTagsPh: "แท็ก (คั่นด้วยจุลภาค)",
+        planListing: "ลงสารบัญ / ปักหมุดไฟล์", planSponsored: "ตำแหน่งผู้สนับสนุน",
+        subContactPh: "ช่องทางติดต่อ / Tx โอนเงิน (ไม่บังคับ)",
+        copyBtn: "คัดลอก", copiedBtn: "คัดลอกแล้ว", closeBtn: "ปิด", sendBtn: "ส่ง",
+        needFields: "กรุณากรอก CID ชื่อ และคำอธิบาย", sentOk: "ส่งเพื่อตรวจสอบเรียบร้อยแล้ว"
       }
     };
 
     const ULKE_DILI = {
-      TR: "tr", DE: "de", AT: "de", CH: "de",
+      TR: "tr",
+      DE: "de", AT: "de", CH: "de",
+      JP: "ja",
+      CN: "zh", TW: "zh", HK: "zh", SG: "zh",
+      RU: "ru", BY: "ru", KZ: "ru",
+      HT: "ht",
+      TH: "th",
+      ES: "es", MX: "es", AR: "es", CO: "es", CL: "es", PE: "es",
+      PT: "pt", BR: "pt",
+      IN: "hi",
+      SA: "ar", AE: "ar", EG: "ar", QA: "ar", KW: "ar", JO: "ar", MA: "ar", DZ: "ar", TN: "ar", IQ: "ar", LB: "ar", OM: "ar", BH: "ar",
+      FR: "fr", BE: "fr",
+      BD: "bn",
+      PK: "ur",
+      ID: "id",
       US: "en", GB: "en", CA: "en", AU: "en", NZ: "en", IE: "en"
     };
 
@@ -581,7 +937,14 @@
     function dilDegistir(dil) {
       aktifDil = CEVIRILER[dil] ? dil : "en";
       const paket = CEVIRILER[aktifDil];
+
       document.documentElement.lang = aktifDil;
+      document.documentElement.dir = (aktifDil === "ar" || aktifDil === "ur") ? "rtl" : "ltr";
+
+      const secici = document.getElementById("dilSecici");
+      if (secici && secici.value !== aktifDil) {
+        secici.value = aktifDil;
+      }
 
       document.querySelectorAll("[data-i18n]").forEach(el => {
         const k = el.getAttribute("data-i18n");
@@ -593,10 +956,6 @@
           const [attr, k] = p.split(":");
           if (attr && k && typeof paket[k] === "string") el.setAttribute(attr.trim(), paket[k]);
         });
-      });
-
-      document.querySelectorAll(".dil-btn").forEach(btn => {
-        btn.classList.toggle("aktif", btn.getAttribute("data-lang") === aktifDil);
       });
     }
 
