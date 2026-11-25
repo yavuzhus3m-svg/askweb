@@ -58,49 +58,93 @@ async function handleResolve(request, env, isPost) {
     let organic = dbResults.filter((r) => Number(r.is_sponsored) !== 1);
     const sponsored = sponsoredList[0] || null;
 
-    // 2. YAPAY ZEKA ARAMASI
-    let aiError = null;
+    // 2. YAPAY ZEKA ARAMASI (FALLBACK SİSTEMİ)
+    let aiErrors = [];
+    
     if (organic.length === 0 && !sponsored) {
-      try {
-        const groqApiKey = env.GROQ; 
-        
-        if (!groqApiKey || groqApiKey.length < 10) {
-            throw new Error("GROQ anahtarı sistemde var ama içi boş veya hatalı!");
-        }
+      const prompt = `Kullanıcı şunu arıyor: "${rawQuery}". Sen IPFS tabanlı bir arama asistanısın. Bu aramaya uygun 2 adet içerik öner. Yanıtını SADECE şu JSON formatında ver: [{"id": 9991, "cid": "QmYapayZekaHash", "title": "Başlık", "description": "Açıklama", "tags": "ai"}]`;
 
-        const prompt = `Kullanıcı şunu arıyor: "${rawQuery}". Sen IPFS tabanlı bir arama asistanısın. Bu aramaya uygun 2 adet içerik öner. Yanıtını SADECE şu JSON formatında ver: [{"id": 9991, "cid": "QmYapayZekaHash", "title": "Başlık", "description": "Açıklama", "tags": "ai"}]`;
+      // --- DENEME 1: GROQ ---
+      if (env.GROQ && organic.length === 0) {
+        try {
+          const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: { "Authorization": `Bearer ${env.GROQ}`, "Content-Type": "application/json" },
+            body: JSON.stringify({
+              model: "llama3-70b-8192", // Groq'un en güçlü stabil modeli
+              messages: [{ role: "user", content: prompt }],
+              temperature: 0.2,
+              response_format: { type: "json_object" }
+            })
+          });
+          if (groqRes.ok) {
+            const data = await groqRes.json();
+            let parsed = JSON.parse(data.choices[0].message.content);
+            if (!Array.isArray(parsed)) parsed = parsed.results || [parsed];
+            organic = parsed.map(item => ({ ...item, is_sponsored: 0, clicks: 0 }));
+          } else {
+            aiErrors.push(`Groq: ${groqRes.status}`);
+          }
+        } catch (e) { aiErrors.push("Groq: " + e.message); }
+      }
 
-        const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-          method: "POST",
-          headers: { "Authorization": `Bearer ${groqApiKey}`, "Content-Type": "application/json" },
-          body: JSON.stringify({
-            model: "llama-3.3-70b-versatile", // EN GÜNCEL MODEL BURADA
-            messages: [{ role: "user", content: prompt }],
-            temperature: 0.2,
-            response_format: { type: "json_object" }
-          })
-        });
+      // --- DENEME 2: GEMINI (Eğer Groq başarısız olduysa) ---
+      if (env.GEMINI && organic.length === 0) {
+        try {
+          const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${env.GEMINI}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { responseMimeType: "application/json", temperature: 0.2 }
+            })
+          });
+          if (geminiRes.ok) {
+            const data = await geminiRes.json();
+            let text = data.candidates[0].content.parts[0].text;
+            text = text.replace(/```json/g, "").replace(/```/g, "").trim();
+            let parsed = JSON.parse(text);
+            if (!Array.isArray(parsed)) parsed = parsed.results || [parsed];
+            organic = parsed.map(item => ({ ...item, is_sponsored: 0, clicks: 0 }));
+          } else {
+            aiErrors.push(`Gemini: ${geminiRes.status}`);
+          }
+        } catch (e) { aiErrors.push("Gemini: " + e.message); }
+      }
 
-        if (!groqRes.ok) {
-            const errorText = await groqRes.text();
-            throw new Error(`Groq HTTP Hatası: ${groqRes.status} - ${errorText}`);
-        }
-
-        const groqData = await groqRes.json();
-        const aiContent = groqData.choices[0].message.content;
-        let parsed = JSON.parse(aiContent);
-        if (!Array.isArray(parsed)) parsed = parsed.results || parsed.items || [parsed];
-        
-        organic = parsed.map(item => ({ ...item, is_sponsored: 0, clicks: 0 }));
-
-      } catch (aiErr) {
-        aiError = "AI Error: " + aiErr.message;
+      // --- DENEME 3: OPENROUTER (Eğer Groq ve Gemini başarısız olduysa) ---
+      if (env.OPENR && organic.length === 0) {
+        try {
+          const openrRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: { 
+              "Authorization": `Bearer ${env.OPENR}`, 
+              "Content-Type": "application/json",
+              "HTTP-Referer": "https://askweb.dpdns.org", // OpenRouter için gerekli
+              "X-Title": "AskWeb"
+            },
+            body: JSON.stringify({
+              model: "meta-llama/llama-3-8b-instruct", // Ücretsiz ve hızlı bir model
+              messages: [{ role: "user", content: prompt }]
+            })
+          });
+          if (openrRes.ok) {
+            const data = await openrRes.json();
+            let text = data.choices[0].message.content;
+            text = text.replace(/```json/g, "").replace(/```/g, "").trim();
+            let parsed = JSON.parse(text);
+            if (!Array.isArray(parsed)) parsed = parsed.results || [parsed];
+            organic = parsed.map(item => ({ ...item, is_sponsored: 0, clicks: 0 }));
+          } else {
+            aiErrors.push(`OpenRouter: ${openrRes.status}`);
+          }
+        } catch (e) { aiErrors.push("OpenRouter: " + e.message); }
       }
     }
 
-    if (dbError || aiError) {
+    if (dbError && organic.length === 0) {
        return new Response(
-            JSON.stringify({ error: `Sistem Detayı -> ${dbError || ''} ${aiError || ''}`.trim(), organic: [], sponsored: null }),
+            JSON.stringify({ error: `Sistem Detayı -> ${dbError} | AI Hataları: ${aiErrors.join(", ")}`, organic: [], sponsored: null }),
             { status: 500, headers: CORS_HEADERS }
        );
     }
