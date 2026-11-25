@@ -29,10 +29,88 @@ function parseJsonArray(rawText) {
   return [];
 }
 
+async function callGroqModel(groqKey, prompt, model) {
+  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${groqKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model,
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.2,
+      max_tokens: 500
+    })
+  });
+
+  if (res.ok) {
+    const data = await res.json();
+    const content = data?.choices?.[0]?.message?.content;
+    if (content) return { ok: true, content };
+    return { ok: false, error: `Groq (${model}): boş yanıt` };
+  }
+
+  const errBody = await res.text().catch(() => "");
+  return { ok: false, error: `Groq (${model} - ${res.status}): ${errBody.slice(0, 120)}` };
+}
+
 async function askAI(prompt, env) {
   const errors = [];
 
-  // 1. HUGGING FACE (Router uç noktası)
+  // 1. GEMINI
+  const geminiKey = env.GEMINI || env.GEMINI_API_KEY;
+  if (!geminiKey) {
+    errors.push("Gemini: Secret tanımlı değil");
+  } else {
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+              responseMimeType: "application/json",
+              temperature: 0.2
+            }
+          })
+        }
+      );
+
+      if (res.ok) {
+        const data = await res.json();
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) return text;
+        errors.push("Gemini: boş yanıt");
+      } else {
+        const errBody = await res.text().catch(() => "");
+        errors.push(`Gemini (${res.status}): ${errBody.slice(0, 120)}`);
+      }
+    } catch (e) {
+      errors.push(`Gemini: ${e.message}`);
+    }
+  }
+
+  // 2. GROQ (Güncel model + yedek model)
+  const groqKey = env.GROQ || env.GROQ_API_KEY;
+  if (!groqKey) {
+    errors.push("Groq: Secret tanımlı değil");
+  } else {
+    const groqModels = ["llama-3.1-8b-instant", "gemma2-9b-it"];
+    for (const model of groqModels) {
+      try {
+        const result = await callGroqModel(groqKey, prompt, model);
+        if (result.ok) return result.content;
+        errors.push(result.error);
+      } catch (e) {
+        errors.push(`Groq (${model}): ${e.message}`);
+      }
+    }
+  }
+
+  // 3. HUGGING FACE (Kredi/PRO 402 hatası nedeniyle en sonda)
   const hfKey = env.HUGGINGFACE || env.HF_TOKEN || env.HUGGINGFACE_API_KEY;
   if (!hfKey) {
     errors.push("HuggingFace: Secret tanımlı değil");
@@ -66,75 +144,6 @@ async function askAI(prompt, env) {
     }
   }
 
-  // 2. GEMINI
-  const geminiKey = env.GEMINI || env.GEMINI_API_KEY;
-  if (!geminiKey) {
-    errors.push("Gemini: Secret tanımlı değil");
-  } else {
-    try {
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-              responseMimeType: "application/json",
-              temperature: 0.2
-            }
-          })
-        }
-      );
-
-      if (res.ok) {
-        const data = await res.json();
-        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text) return text;
-        errors.push("Gemini: boş yanıt");
-      } else {
-        const errBody = await res.text().catch(() => "");
-        errors.push(`Gemini (${res.status}): ${errBody.slice(0, 120)}`);
-      }
-    } catch (e) {
-      errors.push(`Gemini: ${e.message}`);
-    }
-  }
-
-  // 3. GROQ
-  const groqKey = env.GROQ || env.GROQ_API_KEY;
-  if (!groqKey) {
-    errors.push("Groq: Secret tanımlı değil");
-  } else {
-    try {
-      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${groqKey}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
-          messages: [{ role: "user", content: prompt }],
-          temperature: 0.2,
-          max_tokens: 500
-        })
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        const content = data?.choices?.[0]?.message?.content;
-        if (content) return content;
-        errors.push("Groq: boş yanıt");
-      } else {
-        const errBody = await res.text().catch(() => "");
-        errors.push(`Groq (${res.status}): ${errBody.slice(0, 120)}`);
-      }
-    } catch (e) {
-      errors.push(`Groq: ${e.message}`);
-    }
-  }
-
   throw new Error(errors.join(" | "));
 }
 
@@ -155,7 +164,7 @@ async function handleResolve(request, env, isPost) {
 
     if (!rawQuery) {
       return new Response(
-        JSON.stringify({ query: "", sponsored: null, organic: [], v: 2 }),
+        JSON.stringify({ query: "", sponsored: null, organic: [], v: 3 }),
         { headers: CORS_HEADERS }
       );
     }
@@ -209,7 +218,7 @@ async function handleResolve(request, env, isPost) {
     }
 
     return new Response(
-      JSON.stringify({ query: rawQuery, sponsored, organic, v: 2, debug: debugNote }),
+      JSON.stringify({ query: rawQuery, sponsored, organic, v: 3, debug: debugNote }),
       { headers: CORS_HEADERS }
     );
   } catch (err) {
