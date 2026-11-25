@@ -36,6 +36,33 @@ function parseJsonArray(rawText) {
   return [];
 }
 
+async function callGeminiModel(geminiKey, prompt, model) {
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          temperature: 0.2
+        }
+      })
+    }
+  );
+
+  if (res.ok) {
+    const data = await res.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (text) return { ok: true, content: text };
+    return { ok: false, error: `Gemini (${model}): boş yanıt` };
+  }
+
+  const errBody = await res.text().catch(() => "");
+  return { ok: false, error: `Gemini (${model} - ${res.status}): ${errBody.slice(0, 120)}` };
+}
+
 async function callGroqModel(groqKey, prompt, model) {
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
@@ -65,47 +92,33 @@ async function callGroqModel(groqKey, prompt, model) {
 async function askAI(prompt, env) {
   const errors = [];
 
-  // 1. GEMINI
+  // 1. GEMINI (Kasım 2026 güncel ücretsiz/aktif modeller)
   const geminiKey = env.GEMINI || env.GEMINI_API_KEY;
   if (!geminiKey) {
     errors.push("Gemini: Secret tanımlı değil");
   } else {
-    try {
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-              responseMimeType: "application/json",
-              temperature: 0.2
-            }
-          })
-        }
-      );
-
-      if (res.ok) {
-        const data = await res.json();
-        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text) return text;
-        errors.push("Gemini: boş yanıt");
-      } else {
-        const errBody = await res.text().catch(() => "");
-        errors.push(`Gemini (${res.status}): ${errBody.slice(0, 120)}`);
+    const geminiModels = ["gemini-3.5-flash-lite", "gemini-3.8-flash"];
+    for (const model of geminiModels) {
+      try {
+        const result = await callGeminiModel(geminiKey, prompt, model);
+        if (result.ok) return result.content;
+        errors.push(result.error);
+      } catch (e) {
+        errors.push(`Gemini (${model}): ${e.message}`);
       }
-    } catch (e) {
-      errors.push(`Gemini: ${e.message}`);
     }
   }
 
-  // 2. GROQ (Güncel model + yedek model)
+  // 2. GROQ (Kasım 2026 güncel aktif modeller)
   const groqKey = env.GROQ || env.GROQ_API_KEY;
   if (!groqKey) {
     errors.push("Groq: Secret tanımlı değil");
   } else {
-    const groqModels = ["llama-3.1-8b-instant", "gemma2-9b-it"];
+    const groqModels = [
+      "openai/gpt-oss-20b",
+      "qwen/qwen3.8-27b",
+      "openai/gpt-oss-120b"
+    ];
     for (const model of groqModels) {
       try {
         const result = await callGroqModel(groqKey, prompt, model);
@@ -117,7 +130,7 @@ async function askAI(prompt, env) {
     }
   }
 
-  // 3. HUGGING FACE (Kredi/PRO 402 hatası nedeniyle en sonda)
+  // 3. HUGGING FACE (Yedek açık model)
   const hfKey = env.HUGGINGFACE || env.HF_TOKEN || env.HUGGINGFACE_API_KEY;
   if (!hfKey) {
     errors.push("HuggingFace: Secret tanımlı değil");
@@ -130,7 +143,7 @@ async function askAI(prompt, env) {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: "meta-llama/Llama-3.3-70B-Instruct",
+          model: "Qwen/Qwen2.5-7B-Instruct",
           messages: [{ role: "user", content: prompt }],
           temperature: 0.2,
           max_tokens: 500
@@ -171,7 +184,7 @@ async function handleResolve(request, env, isPost) {
 
     if (!rawQuery) {
       return new Response(
-        JSON.stringify({ query: "", sponsored: null, organic: [], v: 3 }),
+        JSON.stringify({ query: "", sponsored: null, organic: [], v: 4 }),
         { headers: CORS_HEADERS }
       );
     }
@@ -230,7 +243,7 @@ async function handleResolve(request, env, isPost) {
     }
 
     return new Response(
-      JSON.stringify({ query: rawQuery, sponsored, organic, v: 3, debug: debugNote }),
+      JSON.stringify({ query: rawQuery, sponsored, organic, v: 4, debug: debugNote }),
       { headers: CORS_HEADERS }
     );
   } catch (err) {
