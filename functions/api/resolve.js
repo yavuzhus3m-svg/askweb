@@ -32,7 +32,7 @@ function parseJsonArray(rawText) {
 async function askAI(prompt, env) {
   const errors = [];
 
-  // 1. HUGGING FACE
+  // 1. HUGGING FACE (Router uç noktası)
   const hfKey = env.HUGGINGFACE || env.HF_TOKEN || env.HUGGINGFACE_API_KEY;
   if (!hfKey) {
     errors.push("HuggingFace: Secret tanımlı değil");
