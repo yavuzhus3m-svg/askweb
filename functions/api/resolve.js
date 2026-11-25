@@ -62,13 +62,12 @@ async function handleResolve(request, env, isPost) {
     let aiError = null;
     if (organic.length === 0 && !sponsored) {
       try {
-        // İKİ İSİMİ DE KONTROL ET (GROQ veya GROQ_API_KEY)
-        const groqApiKey = env.GROQ || env.GROQ_API_KEY; 
+        // Artık sadece GROQ arıyoruz
+        const groqApiKey = env.GROQ; 
         
-        if (!groqApiKey) {
-            // Eğer anahtar yoksa, Cloudflare'in koda verdiği mevcut değişken isimlerini listele
-            const availableKeys = Object.keys(env).join(", ");
-            throw new Error(`API Anahtarı Bulunamadı. Cloudflare'deki mevcut değişkenler: [${availableKeys}]`);
+        // Eğer anahtar yoksa VEYA anahtar çok kısaysa hata ver
+        if (!groqApiKey || groqApiKey.length < 10) {
+            throw new Error("GROQ anahtarı sistemde var ama içi boş veya hatalı! Lütfen Cloudflare'den değeri kontrol edin.");
         }
 
         const prompt = `Kullanıcı şunu arıyor: "${rawQuery}". Sen IPFS tabanlı bir arama asistanısın. Bu aramaya uygun 2 adet içerik öner. Yanıtını SADECE şu JSON formatında ver: [{"id": 9991, "cid": "QmYapayZekaHash", "title": "Başlık", "description": "Açıklama", "tags": "ai"}]`;
