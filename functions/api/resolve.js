@@ -43,7 +43,6 @@ function extractSearchTerms(rawQuery) {
     .map((t) => t.trim())
     .filter((t) => t.length >= 3 && !STOP_WORDS.has(t));
 
-  // Tekrarlanan kelimeleri kaldır ve en fazla 5 anlamlı terim al
   return [...new Set(tokens)].slice(0, 5);
 }
 
@@ -226,7 +225,7 @@ async function handleResolve(request, env, isPost) {
 
     if (!rawQuery) {
       return new Response(
-        JSON.stringify({ query: "", terms: [], sponsored: null, organic: [], v: 5 }),
+        JSON.stringify({ query: "", terms: [], sponsored: null, organic: [], v: 6 }),
         { headers: CORS_HEADERS }
       );
     }
@@ -234,7 +233,6 @@ async function handleResolve(request, env, isPost) {
     const searchTerms = extractSearchTerms(rawQuery);
     let items = [];
 
-    // Yalnızca anlamlı arama terimi kaldıysa D1'de ara
     if (searchTerms.length > 0) {
       const whereClauses = searchTerms
         .map(() => "(LOWER(title) LIKE ? OR LOWER(description) LIKE ? OR LOWER(tags) LIKE ? OR LOWER(cid) LIKE ?)")
@@ -247,7 +245,10 @@ async function handleResolve(request, env, isPost) {
 
       const sql = `SELECT id, cid, title, description, tags, lang, is_sponsored, clicks FROM records WHERE status = 'active' AND (${whereClauses}) ORDER BY is_sponsored DESC, clicks DESC, id DESC LIMIT 20`;
       const rows = await env.DB.prepare(sql).bind(...binds).all();
-      items = rows.results || [];
+      items = (rows.results || []).map((r) => ({
+        ...r,
+        is_ai: false
+      }));
     }
 
     const sponsoredList = items.filter((r) => Number(r.is_sponsored) === 1);
@@ -257,7 +258,7 @@ async function handleResolve(request, env, isPost) {
     let usedProvider = items.length > 0 ? "d1" : null;
 
     if (organic.length === 0 && !sponsored) {
-      const prompt = `Kullanıcı şunu arıyor: "${rawQuery}" (dil: ${lang}). Sen IPFS tabanlı bir arama asistanısın. Bu aramaya uygun 2 adet içerik öner. Yanıtını SADECE aşağıdaki JSON dizisi formatında ver, başka hiçbir açıklama yazma: [{"id": 9991, "cid": "QmYapayZekaHash", "title": "Başlık", "description": "Açıklama", "tags": "ai"}]`;
+      const prompt = `Kullanıcı şunu arıyor: "${rawQuery}" (dil: ${lang}). Sen IPFS tabanlı bir arama asistanısın. Bu aramaya uygun 2 adet içerik öner. Sahte veya uydurma CID üretme. Yanıtını SADECE aşağıdaki JSON dizisi formatında ver, başka hiçbir açıklama yazma: [{"id": 9991, "title": "Başlık", "description": "Açıklama", "tags": "ai"}]`;
 
       try {
         const aiResult = await askAI(prompt, env);
@@ -269,10 +270,11 @@ async function handleResolve(request, env, isPost) {
         } else {
           organic = parsed.slice(0, 2).map((item, idx) => ({
             id: item.id || 9991 + idx,
-            cid: item.cid || "QmYapayZekaHash",
+            cid: null,
+            is_ai: true,
             title: item.title || rawQuery,
-            description: item.description || "AI önerili IPFS içeriği",
-            tags: item.tags || "ai,ipfs",
+            description: item.description || "AI önerili içerik",
+            tags: item.tags || "ai,askweb",
             lang,
             is_sponsored: 0,
             clicks: 0
@@ -291,7 +293,7 @@ async function handleResolve(request, env, isPost) {
         provider: usedProvider,
         sponsored,
         organic,
-        v: 5,
+        v: 6,
         debug: debugNote
       }),
       { headers: CORS_HEADERS }
