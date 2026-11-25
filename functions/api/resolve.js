@@ -74,7 +74,7 @@ async function handleResolve(request, env, isPost) {
           method: "POST",
           headers: { "Authorization": `Bearer ${groqApiKey}`, "Content-Type": "application/json" },
           body: JSON.stringify({
-            model: "llama-3.1-8b-instant", // MODEL GÜNCELLENDİ BURADA!
+            model: "llama-3.3-70b-versatile", // EN GÜNCEL MODEL BURADA
             messages: [{ role: "user", content: prompt }],
             temperature: 0.2,
             response_format: { type: "json_object" }
