@@ -9,29 +9,52 @@ export async function onRequestOptions() {
   return new Response(null, { status: 204, headers: CORS_HEADERS });
 }
 
+function parseJsonArray(rawText) {
+  if (!rawText || typeof rawText !== "string") return [];
+  const cleaned = rawText.replace(/```json/gi, "").replace(/```/g, "").trim();
+
+  try {
+    const parsed = JSON.parse(cleaned);
+    if (Array.isArray(parsed)) return parsed;
+    if (parsed && Array.isArray(parsed.results)) return parsed.results;
+    if (parsed && Array.isArray(parsed.items)) return parsed.items;
+    if (parsed && typeof parsed === "object") return [parsed];
+  } catch (_) {
+    const match = cleaned.match(/\[[\s\S]*\]/);
+    if (match) {
+      const parsed = JSON.parse(match[0]);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  }
+  return [];
+}
+
 async function askAI(prompt, env) {
   const errors = [];
 
-  // 1. HUGGING FACE (Yeni router uç noktası)
-  if (env.HUGGINGFACE) {
+  // 1. HUGGING FACE (Router uç noktası)
+  const hfKey = env.HUGGINGFACE || env.HF_TOKEN || env.HUGGINGFACE_API_KEY;
+  if (hfKey) {
     try {
       const res = await fetch("https://router.huggingface.co/v1/chat/completions", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${env.HUGGINGFACE}`,
+          "Authorization": `Bearer ${hfKey}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
           model: "meta-llama/Llama-3.3-70B-Instruct",
           messages: [{ role: "user", content: prompt }],
           temperature: 0.2,
-          response_format: { type: "json_object" }
+          max_tokens: 500
         })
       });
 
       if (res.ok) {
         const data = await res.json();
-        return data.choices[0].message.content;
+        const content = data?.choices?.[0]?.message?.content;
+        if (content) return content;
+        errors.push("HuggingFace: boş yanıt");
       } else {
         errors.push(`HuggingFace: ${res.status}`);
       }
@@ -41,20 +64,29 @@ async function askAI(prompt, env) {
   }
 
   // 2. GEMINI
-  if (env.GEMINI) {
+  const geminiKey = env.GEMINI || env.GEMINI_API_KEY;
+  if (geminiKey) {
     try {
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${env.GEMINI}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { responseMimeType: "application/json", temperature: 0.2 }
-        })
-      });
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+              responseMimeType: "application/json",
+              temperature: 0.2
+            }
+          })
+        }
+      );
+
       if (res.ok) {
         const data = await res.json();
-        let text = data.candidates[0].content.parts[0].text;
-        return text.replace(/```json/g, "").replace(/```/g, "").trim();
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) return text;
+        errors.push("Gemini: boş yanıt");
       } else {
         errors.push(`Gemini: ${res.status}`);
       }
@@ -64,24 +96,28 @@ async function askAI(prompt, env) {
   }
 
   // 3. GROQ
-  if (env.GROQ) {
+  const groqKey = env.GROQ || env.GROQ_API_KEY;
+  if (groqKey) {
     try {
       const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${env.GROQ}`,
+          "Authorization": `Bearer ${groqKey}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: "openai/gpt-oss-120b",
+          model: "llama-3.3-70b-versatile",
           messages: [{ role: "user", content: prompt }],
           temperature: 0.2,
-          response_format: { type: "json_object" }
+          max_tokens: 500
         })
       });
+
       if (res.ok) {
         const data = await res.json();
-        return data.choices[0].message.content;
+        const content = data?.choices?.[0]?.message?.content;
+        if (content) return content;
+        errors.push("Groq: boş yanıt");
       } else {
         errors.push(`Groq: ${res.status}`);
       }
@@ -109,12 +145,24 @@ async function handleResolve(request, env, isPost) {
     }
 
     if (!rawQuery) {
-      return new Response(JSON.stringify({ query: "", sponsored: null, organic: [] }), { headers: CORS_HEADERS });
+      return new Response(
+        JSON.stringify({ query: "", sponsored: null, organic: [] }),
+        { headers: CORS_HEADERS }
+      );
     }
 
-    const terms = rawQuery.toLowerCase().split(/\s+/).map((t) => t.trim()).filter((t) => t.length > 0).slice(0, 5);
-    const searchTerms = terms.length > 0 ? terms : [rawQuery];
-    const whereClauses = searchTerms.map(() => "(LOWER(title) LIKE ? OR LOWER(description) LIKE ? OR LOWER(tags) LIKE ? OR LOWER(cid) LIKE ?)").join(" OR ");
+    const terms = rawQuery
+      .toLowerCase()
+      .split(/\s+/)
+      .map((t) => t.trim())
+      .filter((t) => t.length > 0)
+      .slice(0, 5);
+
+    const searchTerms = terms.length > 0 ? terms : [rawQuery.toLowerCase()];
+    const whereClauses = searchTerms
+      .map(() => "(LOWER(title) LIKE ? OR LOWER(description) LIKE ? OR LOWER(tags) LIKE ? OR LOWER(cid) LIKE ?)")
+      .join(" OR ");
+
     const binds = [];
     for (const term of searchTerms) {
       binds.push(`%${term}%`, `%${term}%`, `%${term}%`, `%${term}%`);
@@ -129,29 +177,42 @@ async function handleResolve(request, env, isPost) {
     const sponsored = sponsoredList[0] || null;
 
     if (organic.length === 0 && !sponsored) {
-      const prompt = `Kullanıcı şunu arıyor: "${rawQuery}". Sen IPFS tabanlı bir arama asistanısın. Bu aramaya uygun 2 adet içerik öner. Yanıtını SADECE aşağıdaki JSON formatında ver, başka hiçbir açıklama yazma: [{"id": 9991, "cid": "QmYapayZekaHash", "title": "Başlık", "description": "Açıklama", "tags": "ai"}]`;
+      const prompt = `Kullanıcı şunu arıyor: "${rawQuery}" (dil: ${lang}). Sen IPFS tabanlı bir arama asistanısın. Bu aramaya uygun 2 adet içerik öner. Yanıtını SADECE aşağıdaki JSON dizisi formatında ver, başka hiçbir açıklama yazma: [{"id": 9991, "cid": "QmYapayZekaHash", "title": "Başlık", "description": "Açıklama", "tags": "ai"}]`;
 
       try {
         const aiContent = await askAI(prompt, env);
-        let parsed = JSON.parse(aiContent);
-        if (!Array.isArray(parsed)) {
-          parsed = parsed.results || parsed.items || [parsed];
-        }
-        organic = parsed.map(item => ({ ...item, is_sponsored: 0, clicks: 0 }));
-      } catch (aiErr) {
-        return new Response(
-          JSON.stringify({ error: `Sistem Detayı -> ${aiErr.message}`, organic: [], sponsored: null }),
-          { status: 500, headers: CORS_HEADERS }
-        );
+        const parsed = parseJsonArray(aiContent);
+        organic = parsed.slice(0, 2).map((item, idx) => ({
+          id: item.id || 9991 + idx,
+          cid: item.cid || "QmYapayZekaHash",
+          title: item.title || rawQuery,
+          description: item.description || "AI önerili IPFS içeriği",
+          tags: item.tags || "ai,ipfs",
+          lang,
+          is_sponsored: 0,
+          clicks: 0
+        }));
+      } catch (_) {
+        organic = [];
       }
     }
 
-    return new Response(JSON.stringify({ query: rawQuery, sponsored, organic }), { headers: CORS_HEADERS });
-
+    return new Response(
+      JSON.stringify({ query: rawQuery, sponsored, organic }),
+      { headers: CORS_HEADERS }
+    );
   } catch (err) {
-    return new Response(JSON.stringify({ error: "Genel Sunucu Hatası: " + err.message }), { status: 500, headers: CORS_HEADERS });
+    return new Response(
+      JSON.stringify({ error: "Genel Sunucu Hatası: " + err.message }),
+      { status: 500, headers: CORS_HEADERS }
+    );
   }
 }
 
-export async function onRequestGet(context) { return handleResolve(context.request, context.env, false); }
-export async function onRequestPost(context) { return handleResolve(context.request, context.env, true); }
+export async function onRequestGet(context) {
+  return handleResolve(context.request, context.env, false);
+}
+
+export async function onRequestPost(context) {
+  return handleResolve(context.request, context.env, true);
+}
