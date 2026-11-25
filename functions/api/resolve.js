@@ -20,12 +20,19 @@ function parseJsonArray(rawText) {
     if (parsed && Array.isArray(parsed.items)) return parsed.items;
     if (parsed && typeof parsed === "object") return [parsed];
   } catch (_) {
+    // Doğrudan JSON parse başarısızsa metin içindeki ilk JSON dizisini dene
+  }
+
+  try {
     const match = cleaned.match(/\[[\s\S]*\]/);
     if (match) {
       const parsed = JSON.parse(match[0]);
       if (Array.isArray(parsed)) return parsed;
     }
+  } catch (_) {
+    // Bozuk dizi ifadesi durumunda güvenli boş diziye düş
   }
+
   return [];
 }
 
@@ -201,16 +208,21 @@ async function handleResolve(request, env, isPost) {
       try {
         const aiContent = await askAI(prompt, env);
         const parsed = parseJsonArray(aiContent);
-        organic = parsed.slice(0, 2).map((item, idx) => ({
-          id: item.id || 9991 + idx,
-          cid: item.cid || "QmYapayZekaHash",
-          title: item.title || rawQuery,
-          description: item.description || "AI önerili IPFS içeriği",
-          tags: item.tags || "ai,ipfs",
-          lang,
-          is_sponsored: 0,
-          clicks: 0
-        }));
+        if (parsed.length === 0) {
+          organic = [];
+          debugNote = `AI yanıtı JSON dizisine ayrıstırılamadı: ${String(aiContent).slice(0, 160)}`;
+        } else {
+          organic = parsed.slice(0, 2).map((item, idx) => ({
+            id: item.id || 9991 + idx,
+            cid: item.cid || "QmYapayZekaHash",
+            title: item.title || rawQuery,
+            description: item.description || "AI önerili IPFS içeriği",
+            tags: item.tags || "ai,ipfs",
+            lang,
+            is_sponsored: 0,
+            clicks: 0
+          }));
+        }
       } catch (aiErr) {
         organic = [];
         debugNote = aiErr.message;
