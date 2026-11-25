@@ -62,12 +62,10 @@ async function handleResolve(request, env, isPost) {
     let aiError = null;
     if (organic.length === 0 && !sponsored) {
       try {
-        // Artık sadece GROQ arıyoruz
         const groqApiKey = env.GROQ; 
         
-        // Eğer anahtar yoksa VEYA anahtar çok kısaysa hata ver
         if (!groqApiKey || groqApiKey.length < 10) {
-            throw new Error("GROQ anahtarı sistemde var ama içi boş veya hatalı! Lütfen Cloudflare'den değeri kontrol edin.");
+            throw new Error("GROQ anahtarı sistemde var ama içi boş veya hatalı!");
         }
 
         const prompt = `Kullanıcı şunu arıyor: "${rawQuery}". Sen IPFS tabanlı bir arama asistanısın. Bu aramaya uygun 2 adet içerik öner. Yanıtını SADECE şu JSON formatında ver: [{"id": 9991, "cid": "QmYapayZekaHash", "title": "Başlık", "description": "Açıklama", "tags": "ai"}]`;
@@ -76,7 +74,7 @@ async function handleResolve(request, env, isPost) {
           method: "POST",
           headers: { "Authorization": `Bearer ${groqApiKey}`, "Content-Type": "application/json" },
           body: JSON.stringify({
-            model: "llama3-8b-8192",
+            model: "llama-3.1-8b-instant", // MODEL GÜNCELLENDİ BURADA!
             messages: [{ role: "user", content: prompt }],
             temperature: 0.2,
             response_format: { type: "json_object" }
