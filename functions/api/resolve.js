@@ -31,7 +31,7 @@ async function handleResolve(request, env, isPost) {
     let dbError = null;
     let dbResults = [];
 
-    // 1. VERİTABANI ARAMASI (Hata olursa yakala)
+    // 1. VERİTABANI ARAMASI
     try {
       const terms = rawQuery.toLowerCase().split(/\s+/).map((t) => t.trim()).filter((t) => t.length > 0).slice(0, 5);
       const searchTerms = terms.length > 0 ? terms : [rawQuery];
@@ -58,13 +58,17 @@ async function handleResolve(request, env, isPost) {
     let organic = dbResults.filter((r) => Number(r.is_sponsored) !== 1);
     const sponsored = sponsoredList[0] || null;
 
-    // 2. YAPAY ZEKA ARAMASI (Eğer DB'de yoksa)
+    // 2. YAPAY ZEKA ARAMASI
     let aiError = null;
     if (organic.length === 0 && !sponsored) {
       try {
-        const groqApiKey = env.GROQ; 
+        // İKİ İSİMİ DE KONTROL ET (GROQ veya GROQ_API_KEY)
+        const groqApiKey = env.GROQ || env.GROQ_API_KEY; 
+        
         if (!groqApiKey) {
-            throw new Error("Cloudflare'de GROQ isimli bir Secret bulunamadı!");
+            // Eğer anahtar yoksa, Cloudflare'in koda verdiği mevcut değişken isimlerini listele
+            const availableKeys = Object.keys(env).join(", ");
+            throw new Error(`API Anahtarı Bulunamadı. Cloudflare'deki mevcut değişkenler: [${availableKeys}]`);
         }
 
         const prompt = `Kullanıcı şunu arıyor: "${rawQuery}". Sen IPFS tabanlı bir arama asistanısın. Bu aramaya uygun 2 adet içerik öner. Yanıtını SADECE şu JSON formatında ver: [{"id": 9991, "cid": "QmYapayZekaHash", "title": "Başlık", "description": "Açıklama", "tags": "ai"}]`;
@@ -97,7 +101,6 @@ async function handleResolve(request, env, isPost) {
       }
     }
 
-    // Eğer hata varsa ekrana yazdır
     if (dbError || aiError) {
        return new Response(
             JSON.stringify({ error: `Sistem Detayı -> ${dbError || ''} ${aiError || ''}`.trim(), organic: [], sponsored: null }),
