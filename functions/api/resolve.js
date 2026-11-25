@@ -12,7 +12,7 @@ export async function onRequestOptions() {
 async function handleResolve(request, env, isPost) {
   try {
     let rawQuery = "";
-    let lang = "tr"; // Varsayılan dil
+    let lang = "tr";
 
     // Gelen isteği (GET veya POST) analiz et
     if (isPost) {
@@ -32,7 +32,7 @@ async function handleResolve(request, env, isPost) {
       );
     }
 
-    // 1. ADIM: VERİTABANINDA ARA (Sponsorlu ve kayıtlı içerikler için)
+    // 1. ADIM: VERİTABANINDA ARA
     const terms = rawQuery.toLowerCase().split(/\s+/).map((t) => t.trim()).filter((t) => t.length > 0).slice(0, 5);
     const searchTerms = terms.length > 0 ? terms : [rawQuery];
 
@@ -58,61 +58,67 @@ async function handleResolve(request, env, isPost) {
     let organic = items.filter((r) => Number(r.is_sponsored) !== 1);
     const sponsored = sponsoredList[0] || null;
 
-    // 2. ADIM: VERİTABANINDA SONUÇ YOKSA YAPAY ZEKAYA SOR (Groq API)
+    // 2. ADIM: VERİTABANINDA YOKSA YAPAY ZEKAYA (GROQ) SOR
     if (organic.length === 0 && !sponsored) {
       try {
-        const groqApiKey = env.GROQ; // Cloudflare'deki gizli anahtarın
+        const groqApiKey = env.GROQ; // Cloudflare'deki gizli anahtarın ismi tam olarak GROQ olmalı!
         
-        if (groqApiKey) {
-          const prompt = `Kullanıcı şunu arıyor: "${rawQuery}". 
-          Sen AskWeb adında bir yapay zeka arama asistanısın. IPFS üzerinde barındırılan açık kaynak, rehber veya web içerikleri öneriyorsun.
-          Lütfen bu aramaya uygun, gerçekçi ve konuyla alakalı 2 adet içerik öner.
-          Yanıtını SADECE aşağıdaki gibi geçerli bir JSON dizisi olarak ver, başka hiçbir metin yazma:
-          [
-            {
-              "id": 9991,
-              "cid": "QmYapayZekaOrnekHash123",
-              "title": "Önerilen İçerik Başlığı",
-              "description": "Bu içeriğin kısa ve açıklayıcı bir özeti.",
-              "tags": "ai, ipfs, rehber"
-            }
-          ]`;
-
-          const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST",
-            headers: {
-              "Authorization": `Bearer ${groqApiKey}`,
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              model: "llama3-8b-8192", // Hızlı ve ücretsiz model
-              messages: [{ role: "user", content: prompt }],
-              temperature: 0.3,
-              response_format: { type: "json_object" }
-            })
-          });
-
-          if (groqRes.ok) {
-            const groqData = await groqRes.json();
-            const aiContent = groqData.choices[0].message.content;
-            let parsed = JSON.parse(aiContent);
-            
-            // Eğer JSON obje olarak dönerse diziye çevir
-            if (!Array.isArray(parsed)) {
-               parsed = parsed.results || parsed.items || [parsed];
-            }
-            
-            // Yapay zekanın ürettiği sonuçları organik listeye ekle
-            organic = parsed.map(item => ({
-              ...item,
-              is_sponsored: 0,
-              clicks: 0
-            }));
-          }
+        if (!groqApiKey) {
+            throw new Error("GROQ_API_KEY_MISSING");
         }
+
+        const prompt = `Kullanıcı şunu arıyor: "${rawQuery}". 
+        Sen IPFS tabanlı bir arama asistanısın. Bu aramaya uygun 2 adet içerik öner.
+        Yanıtını SADECE aşağıdaki formatta geçerli bir JSON dizisi olarak ver, başka hiçbir şey yazma:
+        [
+          {
+            "id": 9991,
+            "cid": "QmYapayZekaOrnekHash123",
+            "title": "İçerik Başlığı",
+            "description": "Kısa açıklama.",
+            "tags": "ai, ipfs"
+          }
+        ]`;
+
+        const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${groqApiKey}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "llama3-8b-8192", // Hızlı ve ücretsiz model
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.2,
+            response_format: { type: "json_object" }
+          })
+        });
+
+        if (!groqRes.ok) {
+            const errorText = await groqRes.text();
+            throw new Error(`Groq API Error: ${errorText}`);
+        }
+
+        const groqData = await groqRes.json();
+        const aiContent = groqData.choices[0].message.content;
+        let parsed = JSON.parse(aiContent);
+        
+        if (!Array.isArray(parsed)) {
+           parsed = parsed.results || parsed.items || [parsed];
+        }
+        
+        organic = parsed.map(item => ({
+          ...item,
+          is_sponsored: 0,
+          clicks: 0
+        }));
+
       } catch (aiErr) {
-        console.error("AI Error:", aiErr);
-        // Yapay zeka hata verirse sistem çökmesin, boş dönmeye devam etsin.
+        console.error("AI Error Detail:", aiErr.message);
+        return new Response(
+            JSON.stringify({ error: "AI Error: " + aiErr.message, organic: [], sponsored: null }),
+            { status: 500, headers: CORS_HEADERS }
+        );
       }
     }
 
