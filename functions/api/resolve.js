@@ -12,7 +12,7 @@ export async function onRequestOptions() {
 function parseJsonArray(rawText) {
   if (!rawText || typeof rawText !== "string") return [];
   const cleaned = rawText.replace(/```json/gi, "").replace(/```/g, "").trim();
-
+  
   try {
     const parsed = JSON.parse(cleaned);
     if (Array.isArray(parsed)) return parsed;
