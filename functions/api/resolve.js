@@ -32,9 +32,11 @@ function parseJsonArray(rawText) {
 async function askAI(prompt, env) {
   const errors = [];
 
-  // 1. HUGGING FACE (Router uç noktası)
+  // 1. HUGGING FACE
   const hfKey = env.HUGGINGFACE || env.HF_TOKEN || env.HUGGINGFACE_API_KEY;
-  if (hfKey) {
+  if (!hfKey) {
+    errors.push("HuggingFace: Secret tanımlı değil");
+  } else {
     try {
       const res = await fetch("https://router.huggingface.co/v1/chat/completions", {
         method: "POST",
@@ -56,7 +58,8 @@ async function askAI(prompt, env) {
         if (content) return content;
         errors.push("HuggingFace: boş yanıt");
       } else {
-        errors.push(`HuggingFace: ${res.status}`);
+        const errBody = await res.text().catch(() => "");
+        errors.push(`HuggingFace (${res.status}): ${errBody.slice(0, 120)}`);
       }
     } catch (e) {
       errors.push(`HuggingFace: ${e.message}`);
@@ -65,7 +68,9 @@ async function askAI(prompt, env) {
 
   // 2. GEMINI
   const geminiKey = env.GEMINI || env.GEMINI_API_KEY;
-  if (geminiKey) {
+  if (!geminiKey) {
+    errors.push("Gemini: Secret tanımlı değil");
+  } else {
     try {
       const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
@@ -88,7 +93,8 @@ async function askAI(prompt, env) {
         if (text) return text;
         errors.push("Gemini: boş yanıt");
       } else {
-        errors.push(`Gemini: ${res.status}`);
+        const errBody = await res.text().catch(() => "");
+        errors.push(`Gemini (${res.status}): ${errBody.slice(0, 120)}`);
       }
     } catch (e) {
       errors.push(`Gemini: ${e.message}`);
@@ -97,7 +103,9 @@ async function askAI(prompt, env) {
 
   // 3. GROQ
   const groqKey = env.GROQ || env.GROQ_API_KEY;
-  if (groqKey) {
+  if (!groqKey) {
+    errors.push("Groq: Secret tanımlı değil");
+  } else {
     try {
       const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
@@ -119,14 +127,15 @@ async function askAI(prompt, env) {
         if (content) return content;
         errors.push("Groq: boş yanıt");
       } else {
-        errors.push(`Groq: ${res.status}`);
+        const errBody = await res.text().catch(() => "");
+        errors.push(`Groq (${res.status}): ${errBody.slice(0, 120)}`);
       }
     } catch (e) {
       errors.push(`Groq: ${e.message}`);
     }
   }
 
-  throw new Error(`Tüm yapay zeka servisleri başarısız oldu. [${errors.join(", ")}]`);
+  throw new Error(errors.join(" | "));
 }
 
 async function handleResolve(request, env, isPost) {
@@ -146,7 +155,7 @@ async function handleResolve(request, env, isPost) {
 
     if (!rawQuery) {
       return new Response(
-        JSON.stringify({ query: "", sponsored: null, organic: [] }),
+        JSON.stringify({ query: "", sponsored: null, organic: [], v: 2 }),
         { headers: CORS_HEADERS }
       );
     }
@@ -175,6 +184,7 @@ async function handleResolve(request, env, isPost) {
     const sponsoredList = items.filter((r) => Number(r.is_sponsored) === 1);
     let organic = items.filter((r) => Number(r.is_sponsored) !== 1);
     const sponsored = sponsoredList[0] || null;
+    let debugNote = null;
 
     if (organic.length === 0 && !sponsored) {
       const prompt = `Kullanıcı şunu arıyor: "${rawQuery}" (dil: ${lang}). Sen IPFS tabanlı bir arama asistanısın. Bu aramaya uygun 2 adet içerik öner. Yanıtını SADECE aşağıdaki JSON dizisi formatında ver, başka hiçbir açıklama yazma: [{"id": 9991, "cid": "QmYapayZekaHash", "title": "Başlık", "description": "Açıklama", "tags": "ai"}]`;
@@ -192,13 +202,14 @@ async function handleResolve(request, env, isPost) {
           is_sponsored: 0,
           clicks: 0
         }));
-      } catch (_) {
+      } catch (aiErr) {
         organic = [];
+        debugNote = aiErr.message;
       }
     }
 
     return new Response(
-      JSON.stringify({ query: rawQuery, sponsored, organic }),
+      JSON.stringify({ query: rawQuery, sponsored, organic, v: 2, debug: debugNote }),
       { headers: CORS_HEADERS }
     );
   } catch (err) {
