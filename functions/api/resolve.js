@@ -5,6 +5,48 @@ const CORS_HEADERS = {
   "Content-Type": "application/json; charset=utf-8"
 };
 
+const STOP_WORDS = new Set([
+  // Türkçe yaygın durak kelimeleri ve soru ekleri
+  "acaba", "ama", "ancak", "artık", "aslında", "ayrıca", "bana", "bazı", "belki",
+  "ben", "beni", "benim", "beri", "bile", "bir", "birkaç", "birşey", "biz", "bize",
+  "bizi", "bizim", "böyle", "böylece", "buna", "bunda", "bundan", "bunlar", "bunu",
+  "bunun", "burada", "çok", "çünkü", "daha", "dahi", "değil", "demek", "diğer",
+  "diye", "dolayı", "elbette", "en", "fakat", "falan", "felan", "gibi", "göre",
+  "hala", "hangi", "hangisi", "hani", "hatta", "hem", "henüz", "hep", "hepsi",
+  "her", "herhangi", "herkes", "hiç", "hiçbir", "için", "ile", "ilgili", "ise",
+  "işte", "iyi", "kadar", "karşın", "kendi", "kendine", "kendini", "kendisi",
+  "kez", "kim", "kime", "kimi", "kimin", "kimse", "madem", "mı", "mi", "mu", "mü",
+  "nasıl", "neden", "nedir", "nerede", "nereden", "nereye", "nesi", "neyse",
+  "niçin", "niye", "ona", "ondan", "onlar", "onu", "onun", "orada", "oysa",
+  "pek", "rağmen", "sadece", "sanki", "sen", "senden", "seni", "senin", "siz",
+  "sizden", "sizi", "sizin", "şey", "şeyden", "şeyi", "şeyler", "şimdi", "şöyle",
+  "şuna", "şunda", "şundan", "şunlar", "şunu", "şunun", "tabi", "tamam", "tüm",
+  "üzere", "var", "ve", "veya", "ya", "yani", "yerine", "yine", "yok", "yoksa",
+  "zaten", "zira",
+  // İngilizce yaygın durak kelimeleri
+  "the", "and", "for", "are", "but", "not", "you", "all", "any", "can", "had",
+  "her", "was", "one", "our", "out", "day", "get", "has", "him", "his", "how",
+  "man", "new", "now", "old", "see", "two", "way", "who", "boy", "did", "its",
+  "let", "put", "say", "she", "too", "use", "with", "what", "where", "when", "why"
+]);
+
+function extractSearchTerms(rawQuery) {
+  const normalized = rawQuery
+    .toLocaleLowerCase("tr-TR")
+    .replace(/[^\p{L}\p{N}\s]+/gu, " ")
+    .trim();
+
+  if (!normalized) return [];
+
+  const tokens = normalized
+    .split(/\s+/)
+    .map((t) => t.trim())
+    .filter((t) => t.length >= 3 && !STOP_WORDS.has(t));
+
+  // Tekrarlanan kelimeleri kaldır ve en fazla 5 anlamlı terim al
+  return [...new Set(tokens)].slice(0, 5);
+}
+
 export async function onRequestOptions() {
   return new Response(null, { status: 204, headers: CORS_HEADERS });
 }
@@ -12,7 +54,7 @@ export async function onRequestOptions() {
 function parseJsonArray(rawText) {
   if (!rawText || typeof rawText !== "string") return [];
   const cleaned = rawText.replace(/```json/gi, "").replace(/```/g, "").trim();
-  
+
   try {
     const parsed = JSON.parse(cleaned);
     if (Array.isArray(parsed)) return parsed;
@@ -55,7 +97,7 @@ async function callGeminiModel(geminiKey, prompt, model) {
   if (res.ok) {
     const data = await res.json();
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (text) return { ok: true, content: text };
+    if (text) return { ok: true, content: text, provider: model };
     return { ok: false, error: `Gemini (${model}): boş yanıt` };
   }
 
@@ -81,7 +123,7 @@ async function callGroqModel(groqKey, prompt, model) {
   if (res.ok) {
     const data = await res.json();
     const content = data?.choices?.[0]?.message?.content;
-    if (content) return { ok: true, content };
+    if (content) return { ok: true, content, provider: `groq:${model}` };
     return { ok: false, error: `Groq (${model}): boş yanıt` };
   }
 
@@ -92,7 +134,7 @@ async function callGroqModel(groqKey, prompt, model) {
 async function askAI(prompt, env) {
   const errors = [];
 
-  // 1. GEMINI (Kasım 2026 güncel ücretsiz/aktif modeller)
+  // 1. GEMINI
   const geminiKey = env.GEMINI || env.GEMINI_API_KEY;
   if (!geminiKey) {
     errors.push("Gemini: Secret tanımlı değil");
@@ -101,7 +143,7 @@ async function askAI(prompt, env) {
     for (const model of geminiModels) {
       try {
         const result = await callGeminiModel(geminiKey, prompt, model);
-        if (result.ok) return result.content;
+        if (result.ok) return { content: result.content, provider: result.provider };
         errors.push(result.error);
       } catch (e) {
         errors.push(`Gemini (${model}): ${e.message}`);
@@ -109,7 +151,7 @@ async function askAI(prompt, env) {
     }
   }
 
-  // 2. GROQ (Kasım 2026 güncel aktif modeller)
+  // 2. GROQ
   const groqKey = env.GROQ || env.GROQ_API_KEY;
   if (!groqKey) {
     errors.push("Groq: Secret tanımlı değil");
@@ -122,7 +164,7 @@ async function askAI(prompt, env) {
     for (const model of groqModels) {
       try {
         const result = await callGroqModel(groqKey, prompt, model);
-        if (result.ok) return result.content;
+        if (result.ok) return { content: result.content, provider: result.provider };
         errors.push(result.error);
       } catch (e) {
         errors.push(`Groq (${model}): ${e.message}`);
@@ -130,7 +172,7 @@ async function askAI(prompt, env) {
     }
   }
 
-  // 3. HUGGING FACE (Yedek açık model)
+  // 3. HUGGING FACE
   const hfKey = env.HUGGINGFACE || env.HF_TOKEN || env.HUGGINGFACE_API_KEY;
   if (!hfKey) {
     errors.push("HuggingFace: Secret tanımlı değil");
@@ -153,7 +195,7 @@ async function askAI(prompt, env) {
       if (res.ok) {
         const data = await res.json();
         const content = data?.choices?.[0]?.message?.content;
-        if (content) return content;
+        if (content) return { content, provider: "hf:Qwen2.5-7B-Instruct" };
         errors.push("HuggingFace: boş yanıt");
       } else {
         const errBody = await res.text().catch(() => "");
@@ -184,46 +226,46 @@ async function handleResolve(request, env, isPost) {
 
     if (!rawQuery) {
       return new Response(
-        JSON.stringify({ query: "", sponsored: null, organic: [], v: 4 }),
+        JSON.stringify({ query: "", terms: [], sponsored: null, organic: [], v: 5 }),
         { headers: CORS_HEADERS }
       );
     }
 
-    const terms = rawQuery
-      .toLowerCase()
-      .split(/\s+/)
-      .map((t) => t.trim())
-      .filter((t) => t.length > 0)
-      .slice(0, 5);
+    const searchTerms = extractSearchTerms(rawQuery);
+    let items = [];
 
-    const searchTerms = terms.length > 0 ? terms : [rawQuery.toLowerCase()];
-    const whereClauses = searchTerms
-      .map(() => "(LOWER(title) LIKE ? OR LOWER(description) LIKE ? OR LOWER(tags) LIKE ? OR LOWER(cid) LIKE ?)")
-      .join(" OR ");
+    // Yalnızca anlamlı arama terimi kaldıysa D1'de ara
+    if (searchTerms.length > 0) {
+      const whereClauses = searchTerms
+        .map(() => "(LOWER(title) LIKE ? OR LOWER(description) LIKE ? OR LOWER(tags) LIKE ? OR LOWER(cid) LIKE ?)")
+        .join(" OR ");
 
-    const binds = [];
-    for (const term of searchTerms) {
-      binds.push(`%${term}%`, `%${term}%`, `%${term}%`, `%${term}%`);
+      const binds = [];
+      for (const term of searchTerms) {
+        binds.push(`%${term}%`, `%${term}%`, `%${term}%`, `%${term}%`);
+      }
+
+      const sql = `SELECT id, cid, title, description, tags, lang, is_sponsored, clicks FROM records WHERE status = 'active' AND (${whereClauses}) ORDER BY is_sponsored DESC, clicks DESC, id DESC LIMIT 20`;
+      const rows = await env.DB.prepare(sql).bind(...binds).all();
+      items = rows.results || [];
     }
-
-    const sql = `SELECT id, cid, title, description, tags, lang, is_sponsored, clicks FROM records WHERE status = 'active' AND (${whereClauses}) ORDER BY is_sponsored DESC, clicks DESC, id DESC LIMIT 20`;
-    const rows = await env.DB.prepare(sql).bind(...binds).all();
-    const items = rows.results || [];
 
     const sponsoredList = items.filter((r) => Number(r.is_sponsored) === 1);
     let organic = items.filter((r) => Number(r.is_sponsored) !== 1);
     const sponsored = sponsoredList[0] || null;
     let debugNote = null;
+    let usedProvider = items.length > 0 ? "d1" : null;
 
     if (organic.length === 0 && !sponsored) {
       const prompt = `Kullanıcı şunu arıyor: "${rawQuery}" (dil: ${lang}). Sen IPFS tabanlı bir arama asistanısın. Bu aramaya uygun 2 adet içerik öner. Yanıtını SADECE aşağıdaki JSON dizisi formatında ver, başka hiçbir açıklama yazma: [{"id": 9991, "cid": "QmYapayZekaHash", "title": "Başlık", "description": "Açıklama", "tags": "ai"}]`;
 
       try {
-        const aiContent = await askAI(prompt, env);
-        const parsed = parseJsonArray(aiContent);
+        const aiResult = await askAI(prompt, env);
+        usedProvider = aiResult.provider;
+        const parsed = parseJsonArray(aiResult.content);
         if (parsed.length === 0) {
           organic = [];
-          debugNote = `AI yanıtı JSON dizisine ayrıstırılamadı: ${String(aiContent).slice(0, 160)}`;
+          debugNote = `AI yanıtı JSON dizisine ayrıştırılamadı (${aiResult.provider}): ${String(aiResult.content).slice(0, 160)}`;
         } else {
           organic = parsed.slice(0, 2).map((item, idx) => ({
             id: item.id || 9991 + idx,
@@ -243,7 +285,15 @@ async function handleResolve(request, env, isPost) {
     }
 
     return new Response(
-      JSON.stringify({ query: rawQuery, sponsored, organic, v: 4, debug: debugNote }),
+      JSON.stringify({
+        query: rawQuery,
+        terms: searchTerms,
+        provider: usedProvider,
+        sponsored,
+        organic,
+        v: 5,
+        debug: debugNote
+      }),
       { headers: CORS_HEADERS }
     );
   } catch (err) {
